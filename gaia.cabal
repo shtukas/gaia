@@ -1,12 +1,12 @@
-name:                new-template
+name:                gaia
 version:             0.1.0.0
-synopsis:            Initial project template from stack
+synopsis:            The Gaia Implementation 
 description:         Please see README.md
-homepage:            http://github.com/name/project
-license:             BSD3
+homepage:            https://github.com/shutkas/Gaia
+license:             MIT
 license-file:        LICENSE
-author:              Your name here
-maintainer:          your.address@example.com
+author:              Pascal Honoré, Marcello Seri
+maintainer:          pascal@alseyn.net
 -- copyright:           
 category:            Web
 build-type:          Simple
@@ -19,23 +19,23 @@ library
   build-depends:       base >= 4.7 && < 5
   default-language:    Haskell2010
 
-executable new-template-exe
+executable gaia-exe
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
-                     , new-template
+                     , gaia
   default-language:    Haskell2010
 
-test-suite new-template-test
+test-suite gaia-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
   build-depends:       base
-                     , new-template
+                     , gaia
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
 source-repository head
   type:     git
-  location: https://github.com/name/project
+  location: https://github.com/shutkas/Gaia
