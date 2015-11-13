@@ -4,7 +4,9 @@ Unlike Nyx which had a very strict json schema for the Nyx objects, Gaia, doesn'
 	- It is named 'gaia'
 	- the first line is just made of the four letters gaia followed by end of line "\n".
 
-Then the rest of the file consists in *directives*, one per line. A directive is a *directive name*, for instance *tag* followed by a semi colon followed by the *body* of the directive. There can zero or more spaces on either sides of the semi colon. An example of directive is 
+Then the rest of the file consists in *directives*, one per line. A directive is a *directive name*, for instance *tag* followed by a semi colon followed by the *body* of the directive. The exact grammar of a directive is ([a-zA-Z0-9_]+):(.*)\n
+
+
 ```
 tag: Use the force, Luke
 ```
