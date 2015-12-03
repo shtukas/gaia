@@ -17,13 +17,15 @@ library
   hs-source-dirs:      src
   exposed-modules:     GaiaCore
                      , Xcache
-                     , Directives
+                     , Gaia.Directives
                      , FileSystemOperations
   build-depends:       base >= 4.7 && < 5
-                     , parsec
                      , SHA
                      , bytestring
                      , directory
+                     , filepath
+                     , gaia
+                     , parsec
                      , time
   default-language:    Haskell2010
 
@@ -32,11 +34,11 @@ executable gaia
   main-is:             Gaia.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
-                     , parsec
                      , gaia
                      , SHA
                      , bytestring
                      , directory
+                     , filepath
                      , time
   default-language:    Haskell2010
 
@@ -49,6 +51,8 @@ executable gscan
                      , SHA
                      , bytestring
                      , directory
+                     , filepath
+                     , parsec
                      , time
   default-language:    Haskell2010
 
@@ -57,8 +61,8 @@ test-suite gaia-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   build-depends:       base
-                     , parsec
                      , gaia
+                     , parsec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

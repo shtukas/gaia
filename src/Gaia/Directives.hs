@@ -1,4 +1,4 @@
-module Directives(
+module Gaia.Directives(
   DirectiveBody,
   DirectiveTag,
   Directive(..),
@@ -34,7 +34,7 @@ instance Show Directive where
 
 
 -- HELPERS
--- there is spaces in Parsec but it filters also newlines
+-- note: we redefine spaces because Text.Parsec.spaces filters also newlines
 spaces :: Parser String
 spaces  = many (char ' ' <|> char '\t')
 
