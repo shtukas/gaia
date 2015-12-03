@@ -3,10 +3,10 @@ module Xcache (
     get
 ) where
 
-import           Data.ByteString.Lazy.Char8 as Char8
-import           Data.Digest.Pure.SHA       as SHA
+import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.Time.Clock.POSIX      as Time
 import qualified System.Directory           as Dir
+import           Data.Digest.Pure.SHA       as SHA
 
 -- Data.Digest.Pure.SHA
 --     sha1 :: Data.ByteString.Lazy.Internal.ByteString -> Digest SHA1State
@@ -21,8 +21,8 @@ getCurrentUnixTime = round `fmap` Time.getPOSIXTime
 getDigestAndFragments :: String -> (String, String, String)
 getDigestAndFragments key = let
         digest = SHA.showDigest $ SHA.sha1 $ Char8.pack key
-        fragment1 = Prelude.take 2 digest
-        fragment2 = Prelude.take 2 fragment1
+        fragment1 = take 2 digest
+        fragment2 = take 2 fragment1
     in (digest, fragment1, fragment2)
 
 ensureAndGetFolderPathWithPrefix :: String -> String -> String -> IO String
@@ -55,9 +55,9 @@ set :: String -> String -> IO ()
 set key value = do
     datafilepath <- keyToDataFilepathEnsureParentFolder key
     timestampfilepath <- keyToTimestampFilepathEnsureParentFolder key
-    Prelude.writeFile datafilepath value
+    writeFile datafilepath value
     currenttime <- getCurrentUnixTime
-    Prelude.writeFile timestampfilepath $ show currenttime
+    writeFile timestampfilepath $ show currenttime
     return ()
 
 get :: String -> IO String
@@ -68,7 +68,7 @@ get key = do
         then do
             timestampfilepath <- keyToTimestampFilepathEnsureParentFolder key
             currenttime <- getCurrentUnixTime
-            Prelude.writeFile timestampfilepath $ show currenttime
-            Prelude.readFile filepath
+            writeFile timestampfilepath $ show currenttime
+            readFile filepath
         else
             return ""
