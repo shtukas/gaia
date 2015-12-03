@@ -7,6 +7,7 @@ module Gaia.Directives(
 ) where
 
 import Gaia.Types
+import Gaia.FileSystem.Types
 
 import           Control.Monad          (fail)
 
@@ -78,5 +79,5 @@ directives  = do
 parseDirectives :: String -> Either ParseError [Directive]
 parseDirectives  = parse directives ""
 
-parseDirectivesFile :: String -> IO (Either ParseError [Directive])
+parseDirectivesFile :: Filepath -> IO (Either ParseError [Directive])
 parseDirectivesFile  = parseFromFile directives
