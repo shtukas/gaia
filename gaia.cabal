@@ -18,6 +18,7 @@ library
   exposed-modules:     GaiaCore
                      , Xcache
                      , Gaia.Directives
+                     , Gaia.FileSystem.Types
                      , Gaia.Types
                      , FileSystemOperations
   build-depends:       base >= 4.7 && < 5

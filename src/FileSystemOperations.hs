@@ -2,13 +2,11 @@ module FileSystemOperations (
     computeMerkleRootForLocation
 ) where
 
+import Gaia.FileSystem.Types
+
 import qualified System.Directory           as Dir
 -- doesDirectoryExist :: FilePath -> IO Bool
 -- getDirectoryContents :: FilePath -> IO [FilePath]
-
-type Filepath = String
-type Folderpath = String
-type Locationpath = String
 
 -- Do not use. Implementation not finished.
 makeAionObjectForFilepath :: Filepath -> IO String
