@@ -1,10 +1,13 @@
-module Directives(
+module Gaia.Directives(
   DirectiveBody,
   DirectiveTag,
   Directive(..),
   parseDirectives,
   parseDirectivesFile
 ) where
+
+import           Gaia.FileSystem.Types
+import           Gaia.Types
 
 import           Control.Monad          (fail)
 
@@ -21,20 +24,8 @@ import           Text.Parsec.String     (Parser, parseFromFile)
 --   will need to use Text or `mapM_ putChar`
 
 
--- SUPPORT TYPES
-type DirectiveBody = String
-data DirectiveTag  = Tag        -- | NewTag1 | NewTag2 ...
-                     deriving (Eq, Show)
-
-data Directive = Directive DirectiveTag DirectiveBody
-                 deriving (Eq)
-
-instance Show Directive where
-  show (Directive t b) = show t ++ " -> " ++ "\"" ++ b ++ "\""
-
-
 -- HELPERS
--- there is spaces in Parsec but it filters also newlines
+-- note: we redefine spaces because Text.Parsec.spaces filters also newlines
 spaces :: Parser String
 spaces  = many (char ' ' <|> char '\t')
 
@@ -88,5 +79,5 @@ directives  = do
 parseDirectives :: String -> Either ParseError [Directive]
 parseDirectives  = parse directives ""
 
-parseDirectivesFile :: String -> IO (Either ParseError [Directive])
+parseDirectivesFile :: Filepath -> IO (Either ParseError [Directive])
 parseDirectivesFile  = parseFromFile directives
