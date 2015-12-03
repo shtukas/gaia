@@ -3,9 +3,10 @@ module Xcache (
     get
 ) where
 
-import           Data.ByteString.Lazy.Char8 as Char8
+import qualified Data.ByteString.Lazy.Char8 as Char8
 import           Data.Digest.Pure.SHA       as SHA
 import qualified Data.Time.Clock.POSIX      as Time
+import           Gaia.FileSystem.Types
 import qualified System.Directory           as Dir
 
 -- Data.Digest.Pure.SHA
@@ -18,36 +19,36 @@ import qualified System.Directory           as Dir
 getCurrentUnixTime :: IO Int
 getCurrentUnixTime = round `fmap` Time.getPOSIXTime
 
-getDigestAndFragments :: String -> (String, String, String)
-getDigestAndFragments key = let
-        digest = SHA.showDigest $ SHA.sha1 $ Char8.pack key
-        fragment1 = Prelude.take 2 digest
-        fragment2 = Prelude.take 2 fragment1
-    in (digest, fragment1, fragment2)
+getDigestAndFragments :: String -> (DigestString, DigestFragment, DigestFragment)
+getDigestAndFragments k = let
+        d  = SHA.showDigest $ SHA.sha1 $ Char8.pack k
+        f  = take 2 d
+        f' = take 2 f
+    in (d, f, f')
 
-ensureAndGetFolderPathWithPrefix :: String -> String -> String -> IO String
+ensureAndGetFolderPathWithPrefix :: Folderpath -> Folderpath -> Folderpath -> IO Folderpath
 ensureAndGetFolderPathWithPrefix p f f' =
     let folderpath = p ++ "/" ++ f ++ "/" ++ f' in
     Dir.createDirectoryIfMissing True folderpath
     >> return folderpath
 
-keyToDataFilepathEnsureParentFolder :: String -> IO String
+keyToDataFilepathEnsureParentFolder :: String -> IO Filepath
 keyToDataFilepathEnsureParentFolder key = let
-        (digest, fragment1, fragment2) = getDigestAndFragments key
+        (digest, frag, frag') = getDigestAndFragments key
         filename = "sha1-" ++ digest
     in do
         folderpath <- ensureAndGetFolderPathWithPrefix
-                        "/x-space/xcache-v2/datablobs" fragment1 fragment2
+                        "/x-space/xcache-v2/datablobs" frag frag'
         let filepath = folderpath ++ "/" ++ filename
         return filepath
 
-keyToTimestampFilepathEnsureParentFolder :: String -> IO String
+keyToTimestampFilepathEnsureParentFolder :: String -> IO Filepath
 keyToTimestampFilepathEnsureParentFolder key = let
-        (digest, fragment1, fragment2) = getDigestAndFragments key
+        (digest, frag, frag') = getDigestAndFragments key
         filename = "sha1-" ++ digest
     in do
         folderpath <- ensureAndGetFolderPathWithPrefix
-                        "/x-space/xcache-v2/timestamps" fragment1 fragment2
+                        "/x-space/xcache-v2/timestamps" frag frag'
         let filepath = folderpath ++ "/" ++ filename
         return filepath
 
@@ -55,20 +56,21 @@ set :: String -> String -> IO ()
 set key value = do
     datafilepath <- keyToDataFilepathEnsureParentFolder key
     timestampfilepath <- keyToTimestampFilepathEnsureParentFolder key
-    Prelude.writeFile datafilepath value
+    writeFile datafilepath value
     currenttime <- getCurrentUnixTime
-    Prelude.writeFile timestampfilepath $ show currenttime
+    writeFile timestampfilepath $ show currenttime
     return ()
 
+-- TODO: refactore to use `MaybeT IO String` and MonadPlus' guard
 get :: String -> IO String
 get key = do
     filepath <- keyToDataFilepathEnsureParentFolder key
-    fileExists <- Dir.doesFileExist filepath
-    if fileExists
+    fileexists <- Dir.doesFileExist filepath
+    if fileexists
         then do
             timestampfilepath <- keyToTimestampFilepathEnsureParentFolder key
             currenttime <- getCurrentUnixTime
-            Prelude.writeFile timestampfilepath $ show currenttime
-            Prelude.readFile filepath
+            writeFile timestampfilepath $ show currenttime
+            readFile filepath
         else
             return ""
