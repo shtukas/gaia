@@ -10,14 +10,17 @@ type Filepath = String
 type Folderpath = String
 type Locationpath = String
 
+-- Do not use. Implementation not finished.
 makeAionObjectForFilepath :: Filepath -> IO String
 makeAionObjectForFilepath filepath = do
     return "{}"
 
+-- Do not use. Implementation not finished.
 makeAionObjectForDirectory :: Folderpath -> IO String
 makeAionObjectForDirectory folderpath = do
     return "{}"
 
+-- Do not use. Implementation not finished.
 computeMerkleRootForLocation :: Locationpath -> IO [String]
 computeMerkleRootForLocation locationpath = do
     exists <- Dir.doesDirectoryExist locationpath
