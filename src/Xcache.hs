@@ -4,10 +4,10 @@ module Xcache (
 ) where
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
-import qualified Data.Time.Clock.POSIX      as Time
-import qualified System.Directory           as Dir
 import           Data.Digest.Pure.SHA       as SHA
-import Gaia.FileSystem.Types
+import qualified Data.Time.Clock.POSIX      as Time
+import           Gaia.FileSystem.Types
+import qualified System.Directory           as Dir
 
 -- Data.Digest.Pure.SHA
 --     sha1 :: Data.ByteString.Lazy.Internal.ByteString -> Digest SHA1State
@@ -39,7 +39,7 @@ keyToDataFilepathEnsureParentFolder key = let
     in do
         folderpath <- ensureAndGetFolderPathWithPrefix
                         "/x-space/xcache-v2/datablobs" frag frag'
-        let filepath = folderpath ++ "/" ++ filename 
+        let filepath = folderpath ++ "/" ++ filename
         return filepath
 
 keyToTimestampFilepathEnsureParentFolder :: String -> IO Filepath
@@ -49,7 +49,7 @@ keyToTimestampFilepathEnsureParentFolder key = let
     in do
         folderpath <- ensureAndGetFolderPathWithPrefix
                         "/x-space/xcache-v2/timestamps" frag frag'
-        let filepath = folderpath ++ "/" ++ filename 
+        let filepath = folderpath ++ "/" ++ filename
         return filepath
 
 set :: String -> String -> IO ()

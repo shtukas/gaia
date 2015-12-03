@@ -6,8 +6,8 @@ module Gaia.Directives(
   parseDirectivesFile
 ) where
 
-import Gaia.Types
-import Gaia.FileSystem.Types
+import           Gaia.FileSystem.Types
+import           Gaia.Types
 
 import           Control.Monad          (fail)
 
