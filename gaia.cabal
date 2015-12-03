@@ -18,6 +18,7 @@ library
   exposed-modules:     GaiaCore
                      , Xcache
                      , Directives
+                     , FileSystemOperations
   build-depends:       base >= 4.7 && < 5
                      , parsec
                      , SHA
