@@ -26,7 +26,6 @@ library
                      , bytestring
                      , directory
                      , filepath
-                     , gaia
                      , parsec
                      , time
   default-language:    Haskell2010
