@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Gaia
 
 main :: IO ()
-main = someOtherFunc
+main = hello
