@@ -15,17 +15,25 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Gaia
+  exposed-modules:     GaiaCore
   build-depends:       base >= 4.7 && < 5
                      , parsec
   default-language:    Haskell2010
 
-executable gaia-exe
+executable gaia
   hs-source-dirs:      app
-  main-is:             Main.hs
+  main-is:             Gaia.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , parsec
+                     , gaia
+  default-language:    Haskell2010
+
+executable gscan
+  hs-source-dirs:      app
+  main-is:             GScan.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
                      , gaia
   default-language:    Haskell2010
 

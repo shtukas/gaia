@@ -1,6 +1,6 @@
 module Main where
 
-import Gaia
+import GaiaCore
 
 main :: IO ()
 main = hello

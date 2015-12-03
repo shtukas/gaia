@@ -1,4 +1,4 @@
-module Gaia (
+module GaiaCore (
     hello
 ) where
 
