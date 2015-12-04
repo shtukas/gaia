@@ -18,10 +18,9 @@ library
   exposed-modules:     GaiaHello
                     -- below this line in alphabetical order
                      , ContentAddressableStore
-                     , FileSystemOperations
                      , Gaia.Directives
-                     , Gaia.FileSystem.Types
                      , Gaia.Types
+                     , OperationsManager
                      , Xcache
   build-depends:       base >= 4.7 && < 5
                     -- below this line in alphabetical order

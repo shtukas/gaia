@@ -1,14 +1,12 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
-module FileSystemOperations (
+module OperationsManager (
     computeMerkleRootForLocation,
     locationToAeonJSONVAlue,
     aeonJSONVAlueToString
 ) where
 
 import ContentAddressableStore
-
-import Gaia.FileSystem.Types
 
 import qualified Data.Aeson as A
     -- JSON library
@@ -47,6 +45,10 @@ import Data.Digest.Pure.SHA as SHA
 import Data.Vector as V
 
 import qualified System.Directory as Dir
+
+type Filepath = String
+type Folderpath = String
+type Locationpath = String
 
 -- ---------------------------------------------------------------
 

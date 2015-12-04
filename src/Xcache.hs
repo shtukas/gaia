@@ -7,8 +7,10 @@ module Xcache (
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import           Data.Digest.Pure.SHA       as SHA
 import qualified Data.Time.Clock.POSIX      as Time
-import           Gaia.FileSystem.Types
 import qualified System.Directory           as Dir
+
+type Filepath = String
+type Folderpath = String
 
 -- Data.Digest.Pure.SHA
 --     sha1 :: Data.ByteString.Lazy.Internal.ByteString -> Digest SHA1State
