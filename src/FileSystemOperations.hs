@@ -1,13 +1,18 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
 module FileSystemOperations (
-    computeMerkleRootForLocation
+    computeMerkleRootForLocation,
+    locationToAeonJSONVAlue,
+    aeonJSONVAlueToString
 ) where
+
+import ContentAddressableStore
 
 import Gaia.FileSystem.Types
 
 import qualified Data.Aeson as A
     -- JSON library
+    -- A.encode :: A.ToJSON a => a -> Char8.ByteString
 
 import qualified GHC.Exts as E 
     -- support for the JSON library
@@ -43,6 +48,7 @@ import Data.Vector as V
 
 import qualified System.Directory as Dir
 
+-- ---------------------------------------------------------------
 
 getLocationName :: Locationpath -> Locationpath
 getLocationName location = takeFileName location
@@ -56,6 +62,19 @@ getFileContents :: Filepath -> IO Char8.ByteString
 getFileContents filepath = do
     contents <- Char8.readFile filepath
     return contents
+
+excludeDotFolders :: [FilePath] -> [FilePath]
+excludeDotFolders list = Prelude.filter (\filename -> ( Prelude.head filename )/='.' ) list 
+
+-- ---------------------------------------------------------------
+
+aeonJSONVAlueToString :: A.Value -> String
+aeonJSONVAlueToString value = Char8.unpack $ A.encode $ value
+
+commitAeonJSONValueToCAS :: A.Value -> IO String
+commitAeonJSONValueToCAS value = ContentAddressableStore.set $ aeonJSONVAlueToString value
+
+-- ---------------------------------------------------------------
 
 locationToAeonJSONVAlue :: Locationpath -> IO A.Value
 locationToAeonJSONVAlue location = do
@@ -93,18 +112,19 @@ filepathToAesonJSONValue filepath = do
 --	"contents"  : [Aion-Hash]
 --}
 
-excludeDotFolders :: [FilePath] -> [FilePath]
-excludeDotFolders list = Prelude.filter (\filename -> ( Prelude.head filename )/='.' ) list 
-
 folderpathToAesonJSONValue :: Folderpath -> IO A.Value
 folderpathToAesonJSONValue folderpath = do
     directoryContents <- Dir.getDirectoryContents folderpath
-    contents <- Prelude.sequence $ Prelude.map (\filename -> locationToAeonJSONVAlue $ folderpath Prelude.++ "/" Prelude.++ filename ) ( excludeDotFolders directoryContents )
+    aeonvalues <- Prelude.sequence $ Prelude.map (\filename -> locationToAeonJSONVAlue $ folderpath Prelude.++ "/" Prelude.++ filename ) ( excludeDotFolders directoryContents )
+    caskeys <- Prelude.sequence $ Prelude.map (\aeonvalue -> commitAeonJSONValueToCAS aeonvalue ) aeonvalues
+    let aeonvalues2 = Prelude.map (\caskey -> A.String $ T.pack caskey ) caskeys
     return $ A.Object $ E.fromList [
         ("aion-type" , A.String "directory"),
         ("version"   , A.Number 1),
         ("name"      , A.String $ T.pack $ getLocationName folderpath),
-        ("contents"  , A.Array $ V.fromList $ contents ) ]
+        ("contents"  , A.Array $ V.fromList $ aeonvalues2 ) ]
+
+-- ---------------------------------------------------------------
 
 -- Do not use. Implementation not finished.
 computeMerkleRootForLocation :: Locationpath -> IO [String]

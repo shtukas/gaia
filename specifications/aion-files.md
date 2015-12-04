@@ -10,7 +10,7 @@ We have essentially two objects types, which represent files and folders.
 	"version"   : 1
 	"name"      : String
 	"size"      : Integer
-	"hash"      : sha1-hash 
+	"hash"      : sha1-hash
 }
 ```
 
@@ -19,7 +19,7 @@ We have essentially two objects types, which represent files and folders.
 	"aion-type" : "directory"
 	"version"   : 1
 	"name"      : String
-	"contents"  : [Aion-Hash]
+	"contents"  : Aion-Hash(s)
 }
 ```
 

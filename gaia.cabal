@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     GaiaHello
                     -- below this line in alphabetical order
+                     , ContentAddressableStore
                      , FileSystemOperations
                      , Gaia.Directives
                      , Gaia.FileSystem.Types

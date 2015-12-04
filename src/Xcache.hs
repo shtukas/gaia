@@ -1,6 +1,7 @@
 module Xcache (
     set,
-    get
+    get,
+    keyToFilename
 ) where
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
@@ -19,43 +20,55 @@ import qualified System.Directory           as Dir
 getCurrentUnixTime :: IO Int
 getCurrentUnixTime = round `fmap` Time.getPOSIXTime
 
-getDigestAndFragments :: String -> (DigestString, DigestFragment, DigestFragment)
-getDigestAndFragments k = let
-        d  = SHA.showDigest $ SHA.sha1 $ Char8.pack k
-        f  = take 2 d
-        f' = take 2 f
-    in (d, f, f')
+getSha1Digest :: String -> String
+getSha1Digest string = SHA.showDigest $ SHA.sha1 $ Char8.pack string
 
-ensureAndGetFolderPathWithPrefix :: Folderpath -> Folderpath -> Folderpath -> IO Folderpath
-ensureAndGetFolderPathWithPrefix p f f' =
-    let folderpath = p ++ "/" ++ f ++ "/" ++ f' in
-    Dir.createDirectoryIfMissing True folderpath
-    >> return folderpath
+keyToFilename :: String -> String
+keyToFilename key = "sha1-" ++ ( getSha1Digest key )
 
-keyToDataFilepathEnsureParentFolder :: String -> IO Filepath
-keyToDataFilepathEnsureParentFolder key = let
-        (digest, frag, frag') = getDigestAndFragments key
-        filename = "sha1-" ++ digest
+filenameToPathFragments :: String -> (String, String)
+filenameToPathFragments filename = 
+    let f1  = take 2 (drop 5 filename)
+        f2  = take 2 (drop 7 filename)
+    in  (f1, f2)
+
+ensureFolderPath :: Folderpath -> IO ()
+ensureFolderPath folderpath = Dir.createDirectoryIfMissing True folderpath
+
+keyToDataFolderPath :: String -> Folderpath
+keyToDataFolderPath key = 
+    let 
+        filename = keyToFilename key
+        (fragment1, fragment2) = filenameToPathFragments filename
+        folderpath = "/x-space/xcache-v3/datablobs/"++fragment1++"/"++fragment2
+    in  folderpath
+
+keyToTimestampFolderPath :: String -> Folderpath
+keyToTimestampFolderPath key = 
+    let 
+        filename = keyToFilename key
+        (fragment1, fragment2) = filenameToPathFragments filename
+        folderpath = "/x-space/xcache-v3/timestamps/"++fragment1++"/"++fragment2
+    in  folderpath
+
+keyToDataFilepath :: String -> IO Filepath
+keyToDataFilepath key = 
+    let folderpath = keyToDataFolderPath key
     in do
-        folderpath <- ensureAndGetFolderPathWithPrefix
-                        "/x-space/xcache-v2/datablobs" frag frag'
-        let filepath = folderpath ++ "/" ++ filename
-        return filepath
+        ensureFolderPath folderpath
+        return $ folderpath++"/"++(keyToFilename key)
 
-keyToTimestampFilepathEnsureParentFolder :: String -> IO Filepath
-keyToTimestampFilepathEnsureParentFolder key = let
-        (digest, frag, frag') = getDigestAndFragments key
-        filename = "sha1-" ++ digest
+keyToTimestampFilepath :: String -> IO Filepath
+keyToTimestampFilepath key = 
+    let folderpath = keyToTimestampFolderPath key
     in do
-        folderpath <- ensureAndGetFolderPathWithPrefix
-                        "/x-space/xcache-v2/timestamps" frag frag'
-        let filepath = folderpath ++ "/" ++ filename
-        return filepath
+        ensureFolderPath folderpath
+        return $ folderpath++"/"++(keyToFilename key)
 
 set :: String -> String -> IO ()
 set key value = do
-    datafilepath <- keyToDataFilepathEnsureParentFolder key
-    timestampfilepath <- keyToTimestampFilepathEnsureParentFolder key
+    datafilepath <- keyToDataFilepath key
+    timestampfilepath <- keyToTimestampFilepath key
     writeFile datafilepath value
     currenttime <- getCurrentUnixTime
     writeFile timestampfilepath $ show currenttime
@@ -64,11 +77,11 @@ set key value = do
 -- TODO: refactore to use `MaybeT IO String` and MonadPlus' guard
 get :: String -> IO String
 get key = do
-    filepath <- keyToDataFilepathEnsureParentFolder key
+    filepath <- keyToDataFilepath key
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
-            timestampfilepath <- keyToTimestampFilepathEnsureParentFolder key
+            timestampfilepath <- keyToTimestampFilepath key
             currenttime <- getCurrentUnixTime
             writeFile timestampfilepath $ show currenttime
             readFile filepath
