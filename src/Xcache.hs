@@ -40,7 +40,7 @@ keyToDataFolderPath key =
     let 
         filename = keyToFilename key
         (fragment1, fragment2) = filenameToPathFragments filename
-        folderpath = "/x-space/xcache-v3/datablobs/"++fragment1++"/"++fragment2
+        folderpath = "/x-space/xcache-v2/datablobs/"++fragment1++"/"++fragment2
     in  folderpath
 
 keyToTimestampFolderPath :: String -> Folderpath
@@ -48,7 +48,7 @@ keyToTimestampFolderPath key =
     let 
         filename = keyToFilename key
         (fragment1, fragment2) = filenameToPathFragments filename
-        folderpath = "/x-space/xcache-v3/timestamps/"++fragment1++"/"++fragment2
+        folderpath = "/x-space/xcache-v2/timestamps/"++fragment1++"/"++fragment2
     in  folderpath
 
 keyToDataFilepath :: String -> IO Filepath
