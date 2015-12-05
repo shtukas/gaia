@@ -7,6 +7,7 @@ import System.Posix.User
 import qualified ScanningAndRecordingManager
 import qualified ContentAddressableStore
 import qualified Data.Maybe as M
+import qualified AeonObjectsUtils
 
 printHelp :: IO ()
 printHelp = do
@@ -46,7 +47,7 @@ doTheThing1 args
                 putStrLn "I could not find a ContentAddressableStore record"  
             else    
                 do 
-                    let aionJSONValueMaybe = SearchEngine.convertJSONStringIntoAeonJSONObject aionJSONValueAsString
+                    let aionJSONValueMaybe = AeonObjectsUtils.convertJSONStringIntoAeonJSONObject aionJSONValueAsString
                     if M.isJust aionJSONValueMaybe
                         then do 
                             let aionJSONValue = M.fromJust aionJSONValueMaybe

@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     GaiaHello
                     -- below this line in alphabetical order
+                     , AeonObjectsUtils
                      , ContentAddressableStore
                      , Gaia.Directives
                      , Gaia.Types

@@ -41,6 +41,8 @@ import           Data.Digest.Pure.SHA       as SHA
     -- SHA.sha1 :: Char8.ByteString -> Digest SHA1State
     -- SHA.showDigest :: Digest t -> String
 
+import qualified AeonObjectsUtils
+
 type Filepath = String
 type Folderpath = String
 type Locationpath = String
@@ -60,14 +62,6 @@ getFileContents = Char8.readFile
 
 excludeDotFolders :: [FilePath] -> [FilePath]
 excludeDotFolders = filter (\filename -> head filename /= '.' )
-
--- ---------------------------------------------------------------
-
-aeonJSONVAlueToString :: A.Value -> String
-aeonJSONVAlueToString value = Char8.unpack $ A.encode value
-
-commitAeonJSONValueToCAS :: A.Value -> IO String
-commitAeonJSONValueToCAS value = ContentAddressableStore.set $ aeonJSONVAlueToString value
 
 -- ---------------------------------------------------------------
 
@@ -93,12 +87,7 @@ filepathToAesonJSONValue :: Filepath -> IO A.Value
 filepathToAesonJSONValue filepath = do
     filesize <- getFileSize filepath
     filecontents <- getFileContents filepath
-    return $ A.Object $ E.fromList [
-        ("aion-type" , A.String "file"),
-        ("version"   , A.Number 1),
-        ("name"      , A.String $ T.pack $ getLocationName filepath),
-        ("size"      , A.Number $ scientific ( fromIntegral filesize ) 1 ),
-        ("hash"      , A.String $ T.pack $ SHA.showDigest $ SHA.sha1 filecontents ) ]
+    return $ AeonObjectsUtils.makeAeonJSONValueForFile ( getLocationName filepath ) ( fromIntegral filesize ) filecontents
 
 --{
 --	"aion-type" : "directory"
@@ -112,13 +101,9 @@ folderpathToAesonJSONValue folderpath = do
     directoryContents <- Dir.getDirectoryContents folderpath
     aeonvalues <- mapM (\filename -> locationToAeonJSONVAlue $ folderpath ++ "/" ++ filename)
                        (excludeDotFolders directoryContents)
-    caskeys <- mapM commitAeonJSONValueToCAS aeonvalues
+    caskeys <- mapM AeonObjectsUtils.commitAeonJSONValueToCAS aeonvalues
     let aeonvalues2 = map (A.String . T.pack) caskeys
-    return $ A.Object $ E.fromList [
-        ("aion-type" , A.String "directory"),
-        ("version"   , A.Number 1),
-        ("name"      , A.String $ T.pack $ getLocationName folderpath),
-        ("contents"  , A.Array $ V.fromList aeonvalues2 ) ]
+    return $ AeonObjectsUtils.makeAeonJSONValueForDirectory (getLocationName folderpath) aeonvalues2
 
 -- ---------------------------------------------------------------
 
@@ -134,7 +119,7 @@ computeMerkleRootForLocation locationpath = do
     if exists
         then do
             value <- locationToAeonJSONVAlue locationpath
-            string <- commitAeonJSONValueToCAS value
+            string <- AeonObjectsUtils.commitAeonJSONValueToCAS value
             return $ Just string
         else
             return Nothing
