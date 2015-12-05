@@ -35,6 +35,7 @@ library
                      , text
                      , time
                      , unix
+                     , unordered-containers
                      , vector
   default-language:    Haskell2010
 
@@ -54,6 +55,7 @@ executable gaia
                      , text
                      , time
                      , unix
+                     , unordered-containers
                      , vector
   default-language:    Haskell2010
 
@@ -73,6 +75,7 @@ executable gaia-utils
                      , text
                      , time
                      , unix
+                     , unordered-containers
                      , vector
   default-language:    Haskell2010
 
@@ -92,6 +95,7 @@ executable gaia-scan
                      , text
                      , time
                      , unix
+                     , unordered-containers
                      , vector
   default-language:    Haskell2010
 
