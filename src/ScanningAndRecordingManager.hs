@@ -1,50 +1,45 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module ScanningAndRecordingManager (
     cycleMerkleRootComputationForLocation
 ) where
 
-import ContentAddressableStore
-
-import qualified Data.Aeson as A
+import           ContentAddressableStore
+import           Control.Monad              (unless)
+import qualified Data.Aeson                 as A
     -- JSON library
     -- A.encode :: A.ToJSON a => a -> Char8.ByteString
 
-import qualified GHC.Exts as E 
+import           Data.Maybe
+import           Data.Scientific
+import qualified Data.Text                  as T
+    -- T.pack :: String -> T.Text
+
+import qualified Data.Vector                as V
+import qualified GHC.Exts                   as E
     -- support for the JSON library
 
-import qualified System.Directory as Dir
+import qualified System.Directory           as Dir
     -- doesDirectoryExist :: FilePath -> IO Bool
     -- getDirectoryContents :: FilePath -> IO [FilePath]
 
-import qualified Data.Text as T
-    -- T.pack :: String -> T.Text
-
-import System.Posix
-
-import System.Posix.Files
-    -- fileSize :: FileStatus -> FileOffset
-    -- getFileStatus :: FilePath -> IO FileStatus
-
-import System.FilePath.Posix
+import           System.FilePath
     -- takeFileName :: FilePath -> FilePath
     -- type FilePath = String
 
-import Data.Scientific
+import           System.Posix
+import           System.Posix.Files
+    -- fileSize :: FileStatus -> FileOffset
+    -- getFileStatus :: FilePath -> IO FileStatus
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
     -- Char8.pack :: [Char] -> Char8.ByteString
     -- Char8.readFile :: FilePath -> IO Char8.ByteString
 
-import Data.Digest.Pure.SHA as SHA
+import           Data.Digest.Pure.SHA       as SHA
     -- SHA.sha1 :: Char8.ByteString -> Digest SHA1State
     -- SHA.showDigest :: Digest t -> String
-
-import Data.Vector as V
-
-import qualified System.Directory as Dir
-
-import Data.Maybe
 
 type Filepath = String
 type Folderpath = String
@@ -53,7 +48,7 @@ type Locationpath = String
 -- ---------------------------------------------------------------
 
 getLocationName :: Locationpath -> Locationpath
-getLocationName location = takeFileName location
+getLocationName = takeFileName
 
 getFileSize :: Filepath -> IO FileOffset
 getFileSize filepath = do
@@ -61,17 +56,15 @@ getFileSize filepath = do
     return (fileSize stat)
 
 getFileContents :: Filepath -> IO Char8.ByteString
-getFileContents filepath = do
-    contents <- Char8.readFile filepath
-    return contents
+getFileContents = Char8.readFile
 
 excludeDotFolders :: [FilePath] -> [FilePath]
-excludeDotFolders list = Prelude.filter (\filename -> ( Prelude.head filename )/='.' ) list 
+excludeDotFolders = filter (\filename -> head filename /= '.' )
 
 -- ---------------------------------------------------------------
 
 aeonJSONVAlueToString :: A.Value -> String
-aeonJSONVAlueToString value = Char8.unpack $ A.encode $ value
+aeonJSONVAlueToString value = Char8.unpack $ A.encode value
 
 commitAeonJSONValueToCAS :: A.Value -> IO String
 commitAeonJSONValueToCAS value = ContentAddressableStore.set $ aeonJSONVAlueToString value
@@ -82,18 +75,18 @@ locationToAeonJSONVAlue :: Locationpath -> IO A.Value
 locationToAeonJSONVAlue location = do
     isFile      <- Dir.doesFileExist location
     isDirectory <- Dir.doesDirectoryExist location
-    if isFile      
+    if isFile
         then filepathToAesonJSONValue ( location :: Filepath )
-        else if isDirectory 
+        else if isDirectory
             then folderpathToAesonJSONValue ( location :: Folderpath )
-            else return A.Null 
+            else return A.Null
 
 --{
 --	"aion-type" : "file"
 --	"version"   : 1
 --	"name"      : String
 --	"size"      : Integer
---	"hash"      : sha1-hash 
+--	"hash"      : sha1-hash
 --}
 
 filepathToAesonJSONValue :: Filepath -> IO A.Value
@@ -105,7 +98,7 @@ filepathToAesonJSONValue filepath = do
         ("version"   , A.Number 1),
         ("name"      , A.String $ T.pack $ getLocationName filepath),
         ("size"      , A.Number $ scientific ( fromIntegral filesize ) 1 ),
-        ("hash"      , A.String $ T.pack $ SHA.showDigest $ SHA.sha1 $ filecontents ) ]
+        ("hash"      , A.String $ T.pack $ SHA.showDigest $ SHA.sha1 filecontents ) ]
 
 --{
 --	"aion-type" : "directory"
@@ -117,14 +110,15 @@ filepathToAesonJSONValue filepath = do
 folderpathToAesonJSONValue :: Folderpath -> IO A.Value
 folderpathToAesonJSONValue folderpath = do
     directoryContents <- Dir.getDirectoryContents folderpath
-    aeonvalues <- Prelude.sequence $ Prelude.map (\filename -> locationToAeonJSONVAlue $ folderpath Prelude.++ "/" Prelude.++ filename ) ( excludeDotFolders directoryContents )
-    caskeys <- Prelude.sequence $ Prelude.map (\aeonvalue -> commitAeonJSONValueToCAS aeonvalue ) aeonvalues
-    let aeonvalues2 = Prelude.map (\caskey -> A.String $ T.pack caskey ) caskeys
+    aeonvalues <- mapM (\filename -> locationToAeonJSONVAlue $ folderpath ++ "/" ++ filename)
+                       (excludeDotFolders directoryContents)
+    caskeys <- mapM commitAeonJSONValueToCAS aeonvalues
+    let aeonvalues2 = map (A.String . T.pack) caskeys
     return $ A.Object $ E.fromList [
         ("aion-type" , A.String "directory"),
         ("version"   , A.Number 1),
         ("name"      , A.String $ T.pack $ getLocationName folderpath),
-        ("contents"  , A.Array $ V.fromList $ aeonvalues2 ) ]
+        ("contents"  , A.Array $ V.fromList aeonvalues2 ) ]
 
 -- ---------------------------------------------------------------
 
@@ -137,7 +131,7 @@ locationExists locationpath = do
 computeMerkleRootForLocation :: Locationpath -> IO ( Maybe String )
 computeMerkleRootForLocation locationpath = do
     exists <- locationExists locationpath
-    if exists 
+    if exists
         then do
             value <- locationToAeonJSONVAlue locationpath
             string <- commitAeonJSONValueToCAS value
@@ -148,28 +142,15 @@ computeMerkleRootForLocation locationpath = do
 -- In this version we scan one location, this will change later.
 
 commitMerkleRootToUserAppData :: String -> IO ()
-commitMerkleRootToUserAppData root = 
-    do 
+commitMerkleRootToUserAppData root =
+    do
         folderpath <- Dir.getAppUserDataDirectory "gaia"
         Dir.createDirectoryIfMissing True folderpath
-        let filepath = folderpath Prelude.++ "/" Prelude.++"merkleroot"
+        let filepath = folderpath ++ "/" ++ "merkleroot"
         writeFile filepath root
 
 cycleMerkleRootComputationForLocation :: String -> IO ()
-cycleMerkleRootComputationForLocation location = 
-    do 
+cycleMerkleRootComputationForLocation location =
+    do
         root <- computeMerkleRootForLocation location
-        if ( fromMaybe "" root ) == ""
-            then return ()
-            else
-                commitMerkleRootToUserAppData $ fromMaybe "" root
-
-
-
-
-
-
-
-
-
-
+        unless (fromMaybe "" root == "") $ commitMerkleRootToUserAppData $ fromMaybe "" root
