@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
-module OperationsManager (
-    computeMerkleRootForLocation
+module ScanningAndRecordingManager (
+    cycleMerkleRootComputationForLocation
 ) where
 
 import ContentAddressableStore
@@ -43,6 +43,8 @@ import Data.Digest.Pure.SHA as SHA
 import Data.Vector as V
 
 import qualified System.Directory as Dir
+
+import Data.Maybe
 
 type Filepath = String
 type Folderpath = String
@@ -142,6 +144,32 @@ computeMerkleRootForLocation locationpath = do
             return $ Just string
         else
             return Nothing
+
+-- In this version we scan one location, this will change later.
+
+commitMerkleRootToUserAppData :: String -> IO ()
+commitMerkleRootToUserAppData root = 
+    do 
+        folderpath <- Dir.getAppUserDataDirectory "gaia"
+        Dir.createDirectoryIfMissing True folderpath
+        let filepath = folderpath Prelude.++ "/" Prelude.++"merkleroot"
+        writeFile filepath root
+
+cycleMerkleRootComputationForLocation :: String -> IO ()
+cycleMerkleRootComputationForLocation location = 
+    do 
+        root <- computeMerkleRootForLocation location
+        if ( fromMaybe "" root ) == ""
+            then return ()
+            else
+                commitMerkleRootToUserAppData $ fromMaybe "" root
+
+
+
+
+
+
+
 
 
 

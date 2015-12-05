@@ -20,7 +20,7 @@ library
                      , ContentAddressableStore
                      , Gaia.Directives
                      , Gaia.Types
-                     , OperationsManager
+                     , ScanningAndRecordingManager
                      , Xcache
   build-depends:       base >= 4.7 && < 5
                     -- below this line in alphabetical order
