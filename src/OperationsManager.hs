@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
 module OperationsManager (
-    computeMerkleRootForLocation,
-    locationToAeonJSONVAlue,
-    aeonJSONVAlueToString
+    computeMerkleRootForLocation
 ) where
 
 import ContentAddressableStore
@@ -128,18 +126,22 @@ folderpathToAesonJSONValue folderpath = do
 
 -- ---------------------------------------------------------------
 
--- Do not use. Implementation not finished.
-computeMerkleRootForLocation :: Locationpath -> IO [String]
+locationExists :: Locationpath -> IO Bool
+locationExists locationpath = do
+    exists1 <- Dir.doesDirectoryExist locationpath
+    exists2 <- Dir.doesFileExist locationpath
+    return $ exists1 || exists2
+
+computeMerkleRootForLocation :: Locationpath -> IO ( Maybe String )
 computeMerkleRootForLocation locationpath = do
-    exists <- Dir.doesDirectoryExist locationpath
+    exists <- locationExists locationpath
     if exists 
         then do
-            -- Here we have a Directory
-            contents <- Dir.getDirectoryContents locationpath
-            return contents
-        else do
-            -- Here we have a File
-            return [""]
+            value <- locationToAeonJSONVAlue locationpath
+            string <- commitAeonJSONValueToCAS value
+            return $ Just string
+        else
+            return Nothing
 
 
 
