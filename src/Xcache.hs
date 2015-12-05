@@ -1,7 +1,6 @@
 module Xcache (
     set,
-    get,
-    keyToFilename
+    get
 ) where
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
