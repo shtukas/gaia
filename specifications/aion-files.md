@@ -10,7 +10,7 @@ We have essentially two objects types, which represent files and folders.
 	"version"   : 1
 	"name"      : String
 	"size"      : Integer
-	"hash"      : sha1-hash 
+	"hash"      : sha1-hash
 }
 ```
 
@@ -19,8 +19,8 @@ We have essentially two objects types, which represent files and folders.
 	"aion-type" : "directory"
 	"version"   : 1
 	"name"      : String
-	"contents"  : [Aion-Hash]
+	"contents"  : CAS-KEY(s)
 }
 ```
 
-We use the expression "Aion-Hash" for the sha1 digest of a serialized AION object.
+We use the expression "CAS-KEY" for the key returned by the Content Addressable Store.

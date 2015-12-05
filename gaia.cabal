@@ -15,19 +15,27 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     GaiaCore
-                     , Xcache
+  exposed-modules:     GaiaHello
+                    -- below this line in alphabetical order
+                     , ContentAddressableStore
                      , Gaia.Directives
-                     , Gaia.FileSystem.Types
                      , Gaia.Types
-                     , FileSystemOperations
+                     , SearchEngine
+                     , ScanningAndRecordingManager
+                     , Xcache
   build-depends:       base >= 4.7 && < 5
-                     , SHA
+                    -- below this line in alphabetical order
+                     , aeson
                      , bytestring
                      , directory
                      , filepath
                      , parsec
+                     , scientific
+                     , SHA
+                     , text
                      , time
+                     , unix
+                     , vector
   default-language:    Haskell2010
 
 executable gaia
@@ -36,25 +44,55 @@ executable gaia
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , gaia
-                     , SHA
+                    -- below this line in alphabetical order
+                     , aeson
                      , bytestring
                      , directory
                      , filepath
+                     , SHA
+                     , scientific
+                     , text
                      , time
+                     , unix
+                     , vector
   default-language:    Haskell2010
 
-executable gscan
+executable gaia-utils
   hs-source-dirs:      app
-  main-is:             GScan.hs
+  main-is:             GaiaUtils.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , gaia
-                     , SHA
+                    -- below this line in alphabetical order
+                     , aeson
                      , bytestring
                      , directory
                      , filepath
-                     , parsec
+                     , SHA
+                     , scientific
+                     , text
                      , time
+                     , unix
+                     , vector
+  default-language:    Haskell2010
+
+executable gaia-scan
+  hs-source-dirs:      app
+  main-is:             GaiaScan.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , gaia
+                    -- below this line in alphabetical order
+                     , aeson
+                     , bytestring
+                     , directory
+                     , filepath
+                     , SHA
+                     , scientific
+                     , text
+                     , time
+                     , unix
+                     , vector
   default-language:    Haskell2010
 
 test-suite gaia-test
@@ -63,6 +101,7 @@ test-suite gaia-test
   main-is:             Spec.hs
   build-depends:       base
                      , gaia
+                    -- below this line in alphabetical order
                      , parsec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
