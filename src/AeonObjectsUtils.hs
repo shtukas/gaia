@@ -185,7 +185,7 @@ extractGaiaDataFromAeonValueForFile aValue =
 
     in (filename,filesize,hash)
 
-extractGaiaDataFromAeonValueForDirectory :: A.Value -> ( String, [String] ) -- ( foldername, [CAS-Keys(s)] )
+extractGaiaDataFromAeonValueForDirectory :: A.Value -> ( String, [String] ) -- ( foldername, [CAS-Keys(s)] ) ( String, [String] )
 extractGaiaDataFromAeonValueForDirectory aValue =
     let
         value1 = extractListOfPairsFromAeonValueObject aValue

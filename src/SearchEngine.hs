@@ -46,25 +46,45 @@ getAeonJSONStringForCASHash hash = ContentAddressableStore.get hash
 
 -- extractLocationpathsForAionJsonFileObjectAndQuery <aeonObjectFile> <search pattern> <current path>
 
-extractLocationpathsForAionJsonFileObjectAndQuery :: A.Value -> String -> String -> Maybe [ Locationpath ]
+extractLocationpathsForAionJsonFileObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
 extractLocationpathsForAionJsonFileObjectAndQuery aeonObjectFile pattern current_path = 
-    let aValue = aeonObjectFile
-        (filename, filesize, sha1shah) = AeonObjectsUtils.extractGaiaDataFromAeonValueForFile aValue
-    in Just [filename]
+    do
+        let aValue = aeonObjectFile
+            (filename, filesize, sha1shah) = AeonObjectsUtils.extractGaiaDataFromAeonValueForFile aValue
+        return $ Just [current_path++"/"++filename]
 
 -- -----------------------------------------------------------
 
 -- extractLocationpathsForAionJsonDirectoryObjectAndQuery <aeonObjectDirectory> <search pattern> <current path>
 
-extractLocationpathsForAionJsonDirectoryObjectAndQuery :: A.Value -> String -> String -> Maybe [ Locationpath ]
+extractLocationpathsForAionJsonDirectoryObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
 extractLocationpathsForAionJsonDirectoryObjectAndQuery aeonObjectDirectory pattern current_path = 
-    let aValue = aeonObjectDirectory
-        (foldername, cas_keys) = AeonObjectsUtils.extractGaiaDataFromAeonValueForDirectory aValue
-    in Just [foldername]
+    do
+        let aValue = aeonObjectDirectory
+
+        let (foldername, cas_keys) = AeonObjectsUtils.extractGaiaDataFromAeonValueForDirectory aeonObjectDirectory 
+            -- ( foldername, [CAS-Keys(s)] ) 
+            -- ( String, [String] )
+
+        let array1 = map (\k -> extractLocationpathsForAionCASHashAndQuery k pattern (current_path ++ "/" ++ foldername) ) cas_keys
+            -- [ IO ( Maybe [ Locationpath ] ) ]
+
+        let array2 = sequence array1
+            -- IO [ Maybe [ Locationpath ] ]
+
+        array3 <- array2
+            -- [ Maybe [ Locationpath ] ]
+
+        let array4 = map (\x -> M.fromJust x ) array3       
+             -- [ [ Locationpath ] ]
+
+        let array5 = concat array4
+
+        return $ Just array5
 
 -- -----------------------------------------------------------
 
-extractLocationpathsForAionJsonObjectAndQuery :: A.Value -> String -> String -> Maybe [ Locationpath ]
+extractLocationpathsForAionJsonObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
 extractLocationpathsForAionJsonObjectAndQuery aeonObject pattern current_path = 
     let 
         value1 = AeonObjectsUtils.extractListOfPairsFromAeonValueObject aeonObject
@@ -74,9 +94,9 @@ extractLocationpathsForAionJsonObjectAndQuery aeonObject pattern current_path =
         value5 = M.fromJust value4
     in
         if value5=="file"
-            then
+            then do
                 extractLocationpathsForAionJsonFileObjectAndQuery aeonObject pattern current_path
-            else
+            else do
                 extractLocationpathsForAionJsonDirectoryObjectAndQuery aeonObject pattern current_path
 
 -- -----------------------------------------------------------
@@ -92,7 +112,7 @@ extractLocationpathsForAionCASHashAndQuery aion_cas_hash pattern current_path = 
     if M.isJust aionJSONValueMaybe
         then do 
             let aionJSONValue = M.fromJust aionJSONValueMaybe
-            return $ extractLocationpathsForAionJsonObjectAndQuery aionJSONValue pattern current_path 
+            extractLocationpathsForAionJsonObjectAndQuery aionJSONValue pattern current_path 
         else
             return Nothing    
 
