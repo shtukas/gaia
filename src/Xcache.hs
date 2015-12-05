@@ -7,8 +7,9 @@ import qualified Data.ByteString.Lazy.Char8 as Char8
 import           Data.Digest.Pure.SHA       as SHA
 import qualified Data.Time.Clock.POSIX      as Time
 import qualified System.Directory           as Dir
-import System.Environment (getEnv)
-import System.IO.Error (catchIOError, ioError, isDoesNotExistError)
+import           System.Environment         (getEnv)
+import           System.IO.Error            (catchIOError, ioError,
+                                             isDoesNotExistError)
 
 type Filepath = String
 type Folderpath = String
@@ -31,12 +32,12 @@ getCurrentUnixTime :: IO Int
 getCurrentUnixTime = round `fmap` Time.getPOSIXTime
 
 getEnvFailback :: String -> String -> IO String
-getEnvFailback env failback = 
+getEnvFailback env failback =
     catchIOError (getEnv env) (\e -> if isDoesNotExistError e then return failback else ioError e)
 
 getSha1Digest :: String -> String
 getSha1Digest string = SHA.showDigest $ SHA.sha1 $ Char8.pack string
-        
+
 getXCacheRoot :: IO String
 getXCacheRoot = getEnvFailback "XCACHEROOT" _dataroot
 
@@ -44,7 +45,7 @@ ensureFolderPath :: Folderpath -> IO ()
 ensureFolderPath = Dir.createDirectoryIfMissing True
 
 filenameToPathFragments :: String -> (String, String)
-filenameToPathFragments filename = 
+filenameToPathFragments filename =
     let f1  = take 2 (drop 5 filename)
         f2  = take 2 (drop 7 filename)
     in  (f1, f2)
@@ -53,16 +54,16 @@ keyToFilename :: String -> String
 keyToFilename key = "sha1-" ++ getSha1Digest key
 
 keyToDataFolderPath :: String -> IO Folderpath
-keyToDataFolderPath key = 
-    let 
+keyToDataFolderPath key =
+    let
         filename = keyToFilename key
         (fragment1, fragment2) = filenameToPathFragments filename
     in  getXCacheRoot >>= \root ->
         return $ root ++ "/datablobs/" ++ fragment1 ++ "/" ++ fragment2
 
 keyToTimestampFolderPath :: String -> IO Folderpath
-keyToTimestampFolderPath key = 
-    let 
+keyToTimestampFolderPath key =
+    let
         filename = keyToFilename key
         (fragment1, fragment2) = filenameToPathFragments filename
     in  getXCacheRoot >>= \root ->
