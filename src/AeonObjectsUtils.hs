@@ -29,6 +29,8 @@ import           ContentAddressableStore
 
 import qualified Data.Vector                as V
 
+import           Data.Scientific            as S
+
 type Locationpath = String
 
 {-|
@@ -135,7 +137,7 @@ commitAeonJSONValueToCAS value = ContentAddressableStore.set $ aeonJSONVAlueToSt
 -- Object (fromList [("name",String "Pascal")])
 
 convertJSONStringIntoAeonJSONObject :: String -> Maybe A.Value
-convertJSONStringIntoAeonJSONObject string = 
+convertJSONStringIntoAeonJSONObject string =
     let value1 = A.decode $ Char8.pack string
         value2 = if M.isJust value1
             then 
@@ -148,16 +150,51 @@ convertJSONStringIntoAeonJSONObject string =
 -- Extracting Data from Aeon Value
 -- -----------------------------------------------------------
 
-extractListOfPairsFromAeonValue :: A.Value -> Maybe [(T.Text ,A.Value)]
-extractListOfPairsFromAeonValue (A.Object x) = Just $ HM.toList x
-extractListOfPairsFromAeonValue _ = Nothing
+extractListOfPairsFromAeonValueObject :: A.Value -> Maybe [(T.Text ,A.Value)]
+extractListOfPairsFromAeonValueObject (A.Object x) = Just $ HM.toList x
+extractListOfPairsFromAeonValueObject _ = Nothing
 
-extractUnderlyingTextFromAeonString :: A.Value -> Maybe T.Text
-extractUnderlyingTextFromAeonString (A.String x) = Just x
-extractUnderlyingTextFromAeonString _ = Nothing
+extractUnderlyingTextFromAeonValueString :: A.Value -> Maybe T.Text
+extractUnderlyingTextFromAeonValueString (A.String x) = Just x
+extractUnderlyingTextFromAeonValueString _ = Nothing
 
+extractUnderlyingIntegerFromAeonValueNumber :: A.Value -> Maybe Integer
+extractUnderlyingIntegerFromAeonValueNumber (A.Number x) = Just $ S.coefficient x
+extractUnderlyingIntegerFromAeonValueNumber _ = Nothing
 
+extractUnderlyingListOfStringsFromAeonValueVectorString :: A.Value -> Maybe [String]
+extractUnderlyingListOfStringsFromAeonValueVectorString (A.Array x) = Just $ map (\v -> (T.unpack . M.fromJust . extractUnderlyingTextFromAeonValueString) v ) ( V.toList x )
+extractUnderlyingListOfStringsFromAeonValueVectorString _ = Nothing
 
+extractGaiaDataFromAeonValueForFile :: A.Value -> ( String, Integer, String ) -- ( filename, filesize, sha1-shah )
+extractGaiaDataFromAeonValueForFile aValue =
+    let
+        value1 = extractListOfPairsFromAeonValueObject aValue                     -- [(T.Text ,A.Value)]
 
+        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )         -- AeonValueString
+        value3 = M.fromJust $ extractUnderlyingTextFromAeonValueString value2     -- Text
+        filename = T.unpack value3                                                -- String
 
+        value4 = M.fromJust $ Prelude.lookup "size" ( M.fromJust value1 )         -- AeonValueNumber  
+        value5 = M.fromJust $ extractUnderlyingIntegerFromAeonValueNumber value4  -- Integer
+        filesize = value5
 
+        value6 = M.fromJust $ Prelude.lookup "hash" ( M.fromJust value1 )         -- AeonValueNumber  
+        value7 = M.fromJust $ extractUnderlyingTextFromAeonValueString value6     -- Integer
+        hash = T.unpack value7
+
+    in (filename,filesize,hash)
+
+extractGaiaDataFromAeonValueForDirectory :: A.Value -> ( String, [String] ) -- ( foldername, [CAS-Keys(s)] )
+extractGaiaDataFromAeonValueForDirectory aValue =
+    let
+        value1 = extractListOfPairsFromAeonValueObject aValue
+        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )
+        value3 = M.fromJust $ extractUnderlyingTextFromAeonValueString value2
+        foldername = T.unpack value3
+
+        value6 = M.fromJust $ Prelude.lookup "contents" ( M.fromJust value1 )                 -- AeonValueNumber  
+        value7 = M.fromJust $ extractUnderlyingListOfStringsFromAeonValueVectorString value6  -- [String]
+        contents = value7
+
+    in (foldername, contents)

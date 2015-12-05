@@ -19,8 +19,6 @@ import qualified Data.Maybe as M
 
 import qualified Data.HashMap.Strict as HM
 
-import qualified Data.Text as T
-
 import qualified AeonObjectsUtils
 
 type Locationpath = String
@@ -49,24 +47,30 @@ getAeonJSONStringForCASHash hash = ContentAddressableStore.get hash
 -- extractLocationpathsForAionJsonFileObjectAndQuery <aeonObjectFile> <search pattern> <current path>
 
 extractLocationpathsForAionJsonFileObjectAndQuery :: A.Value -> String -> String -> Maybe [ Locationpath ]
-extractLocationpathsForAionJsonFileObjectAndQuery aeonObjectFile pattern current_path = Just ["file"]
+extractLocationpathsForAionJsonFileObjectAndQuery aeonObjectFile pattern current_path = 
+    let aValue = aeonObjectFile
+        (filename, filesize, sha1shah) = AeonObjectsUtils.extractGaiaDataFromAeonValueForFile aValue
+    in Just [filename]
 
 -- -----------------------------------------------------------
 
 -- extractLocationpathsForAionJsonDirectoryObjectAndQuery <aeonObjectDirectory> <search pattern> <current path>
 
 extractLocationpathsForAionJsonDirectoryObjectAndQuery :: A.Value -> String -> String -> Maybe [ Locationpath ]
-extractLocationpathsForAionJsonDirectoryObjectAndQuery aeonObjectDirectory pattern current_path = Just ["directory"]
+extractLocationpathsForAionJsonDirectoryObjectAndQuery aeonObjectDirectory pattern current_path = 
+    let aValue = aeonObjectDirectory
+        (foldername, cas_keys) = AeonObjectsUtils.extractGaiaDataFromAeonValueForDirectory aValue
+    in Just [foldername]
 
 -- -----------------------------------------------------------
 
 extractLocationpathsForAionJsonObjectAndQuery :: A.Value -> String -> String -> Maybe [ Locationpath ]
 extractLocationpathsForAionJsonObjectAndQuery aeonObject pattern current_path = 
     let 
-        value1 = AeonObjectsUtils.extractListOfPairsFromAeonValue aeonObject
+        value1 = AeonObjectsUtils.extractListOfPairsFromAeonValueObject aeonObject
         value2 = Prelude.lookup "aion-type" ( M.fromJust value1 )
         value3 = M.fromJust value2
-        value4 = AeonObjectsUtils.extractUnderlyingTextFromAeonString value3
+        value4 = AeonObjectsUtils.extractUnderlyingTextFromAeonValueString value3
         value5 = M.fromJust value4
     in
         if value5=="file"
@@ -102,5 +106,4 @@ runQueryAgainMerkleRootUsingStoredData pattern = do
             do extractLocationpathsForAionCASHashAndQuery ( M.fromJust merkleroot ) pattern "/Users/pascal/Desktop"
         else
             return Nothing
-
 
