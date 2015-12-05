@@ -39,7 +39,7 @@ getSha1Digest :: String -> String
 getSha1Digest string = SHA.showDigest $ SHA.sha1 $ Char8.pack string
 
 getXCacheRoot :: IO String
-getXCacheRoot = getEnvFailback "XCACHEROOT" _dataroot
+getXCacheRoot = getEnvFailback "GAIAXCACHEROOT" _dataroot
 
 ensureFolderPath :: Folderpath -> IO ()
 ensureFolderPath = Dir.createDirectoryIfMissing True

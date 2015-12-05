@@ -18,4 +18,4 @@ To remain compatible with the original Xcache, another file needs to be written,
 
 and whose contents consist in the current unixtime ("1449151539" at the time those lines are written). This timestamp file needs to be written both at read and write operations against the key. (This will change later.)
 
-The `<xcache root directory>` can be specified with the environment variable `XCACHEROOT`.
+The `<xcache root directory>` can be specified with the environment variable `GAIAXCACHEROOT`.
