@@ -4,7 +4,7 @@ module SearchEngine (
     getMerkleRoot,
     convertJSONStringIntoAeonJSONObject,
     extractLocationpathsForAionCASHashAndQuery,
-    cycleQuery
+    runQueryAgainMerkleRootUsingStoredData
 ) where
 
 import qualified System.Directory as Dir
@@ -183,7 +183,13 @@ extractLocationpathsForAionCASHashAndQuery aion_cas_hash pattern current_path = 
 
 -- -----------------------------------------------------------
 
-cycleQuery :: String -> IO ( Maybe [ Locationpath ] )
-cycleQuery pattern = extractLocationpathsForAionCASHashAndQuery "79fbfe2749417f42d120d35229d6f4e61159f48a" pattern "/Users/pascal/Desktop"
+runQueryAgainMerkleRootUsingStoredData :: String -> IO ( Maybe [ Locationpath ] )
+runQueryAgainMerkleRootUsingStoredData pattern = do
+    merkleroot <- getMerkleRoot
+    if M.isJust merkleroot
+        then
+            do extractLocationpathsForAionCASHashAndQuery ( M.fromJust merkleroot ) pattern "/Users/pascal/Desktop"
+        else
+            return Nothing
 
 

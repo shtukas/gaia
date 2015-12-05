@@ -14,6 +14,7 @@ printHelp = do
     putStrLn "    usage: gaia-utils get-merkle-root"
     putStrLn "    usage: gaia-utils cas-get <key>"
     putStrLn "    usage: gaia-utils expose-aeon-object <key>"
+    putStrLn "    usage: gaia-utils run-query <pattern>"
 
 doTheThing1 :: [String] -> IO ()
 doTheThing1 args
@@ -52,6 +53,18 @@ doTheThing1 args
                             putStrLn $ show aionJSONValue
                         else
                             putStrLn "I could not convert the record to a Aeon Object"  
+
+    | ( (head args) == "run-query" ) && ( length args >= 2 ) = do 
+        let pattern = ( head $ drop 1 args )
+        result <- SearchEngine.runQueryAgainMerkleRootUsingStoredData pattern
+        if M.isJust result
+            then 
+                do 
+                    let folderpaths = M.fromJust result
+                    sequence $ map (\folderpath -> putStrLn ( "> " ++ folderpath)) folderpaths
+                    return ()
+            else 
+                putStrLn "Query has failed (for some reasons...)"
 
     | otherwise = do 
         putStrLn ""
