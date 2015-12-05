@@ -13,6 +13,10 @@ printHelp = do
 
 doTheThing1 :: [String] -> IO ()
 doTheThing1 args
+    | length args == 0 = do
+        putStrLn ""
+        printHelp
+        putStrLn ""        
     | (head args) == "run-scan-at-default-location" = do 
         username <- System.Posix.User.getLoginName
         ScanningAndRecordingManager.cycleMerkleRootComputationForLocation $ "/Users/"++username++"/Desktop"
