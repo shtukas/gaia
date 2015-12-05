@@ -1,6 +1,6 @@
 # Gaia
 
-Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx-Ruby) where the regular file system is the repository.
+Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx-Ruby) in Haskell where the regular file system is the repository.
 
 # Todo
 - Allow users to specify the location of their Xcache repository. (Currently hardcoded to use the existing one on Pascal's computer.)
