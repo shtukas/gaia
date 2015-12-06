@@ -2,13 +2,15 @@
 
 Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx) with ideas coming from the proof-of-concept [Genesis](https://github.com/shutkas/Genesis).
 
-With Gaia, not only the regular collection of Nyx objects will be available, not only will you be able to use your regular local file system hierarchy as repository, but you will also be able to browse (and partially access) files on your external hard drives while they are disconnected [1]. 
+With Gaia, not only the regular collection of Nyx objects will be available, not only will you be able to see your unmodified regular local file system hierarchy as repository, but you will also be able to browse (and partially access) files on your external hard drives while they are disconnected [1]. 
 
 [1] Admitedly one of Pascal's key steps towards world domination.
 
 ## Executables
 
 The two executables are `gaia-utils` for overall management and introspection (see next section for details), and `gaia-web` which starts the web server.
+
+We are using [stack](http://docs.haskellstack.org) to make Gaia. The commands below can be ran with `stack build` followed by, say, `stack exec gaia-utils general-scan`. We do not yet have a proper install script.
 
 ## gaia-utils
 
@@ -44,12 +46,14 @@ To run the web server do `stack exec gaia-web` (this command must be ran at the 
 ## Todo
 - **In progress**: Allow users to specify the location of their Xcache repository. (Currently hardcoded to use the existing one on Pascal's computer.)
 - **Done**: To be able to scan more than one location. 
-- Use the filepath package and its System.FilePath for multiplatform interfaces for file access
+- Use the filepath package and its System.FilePath for multiplatform interfaces for file access.
+- Provide a proper install script.
 
 ## Roadmap
-- **In progress**: Recovering the functionalities of Gaia-Genesis 
-- **In progress**: Implementing the web server and have basic online search
-- Developping the Directives functionality
+- **In progress**: Recovering the functionalities of Gaia-Genesis. 
+- **In progress**: Implementing the web server and have basic online search.
+- Developping the Directives functionality.
+- Reimplement all of Nyx in Gaia.
 
 ## Vocabulary
 
