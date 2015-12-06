@@ -10,6 +10,7 @@ import qualified System.Directory           as Dir
 import           System.Environment         (getEnv)
 import           System.IO.Error            (catchIOError, ioError,
                                              isDoesNotExistError)
+import qualified Data.Maybe as M
 
 type Filepath = String
 type Folderpath = String
@@ -91,7 +92,7 @@ set key value = do
     return ()
 
 -- TODO: refactore to use `MaybeT IO String` and MonadPlus' guard
-get :: String -> IO String
+get :: String -> IO ( Maybe String )
 get key = do
     filepath <- keyToDataFilePath key
     fileexists <- Dir.doesFileExist filepath
@@ -100,6 +101,7 @@ get key = do
             timestampfilepath <- keyToTimestampFilePath key
             currenttime <- getCurrentUnixTime
             writeFile timestampfilepath $ show currenttime
-            readFile filepath
+            contents <- readFile filepath
+            return $ M.Just contents
         else
-            return ""
+            return Nothing

@@ -39,23 +39,31 @@ doTheThing1 args
     | ( (head args) == "cas-get" ) && ( length args >= 2 ) = do 
         let key = ( head $ drop 1 args )
         string <- ContentAddressableStore.get key
-        putStrLn string 
+        if M.isJust string
+            then do
+                putStrLn $ M.fromJust string 
+            else
+                putStrLn "error: Could not retrive data for this key"
 
     | ( (head args) == "expose-aeson-object" ) && ( length args >= 2 ) = do 
         let aion_cas_hash = ( head $ drop 1 args )
         aionJSONValueAsString <- ContentAddressableStore.get aion_cas_hash
-        if ( length aionJSONValueAsString ) == 0
+        if M.isJust aionJSONValueAsString
             then
-                putStrLn "I could not find a ContentAddressableStore record"  
-            else    
-                do 
-                    let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject aionJSONValueAsString
-                    if M.isJust aionJSONValueMaybe
-                        then do 
-                            let aionJSONValue = M.fromJust aionJSONValueMaybe
-                            putStrLn $ show aionJSONValue
-                        else
-                            putStrLn "I could not convert the record to a Aeson Object"  
+                if ( length $ M.fromJust aionJSONValueAsString ) == 0
+                    then
+                        putStrLn "I could not find a ContentAddressableStore record"  
+                    else    
+                        do 
+                            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject $ M.fromJust aionJSONValueAsString
+                            if M.isJust aionJSONValueMaybe
+                                then do 
+                                    let aionJSONValue = M.fromJust aionJSONValueMaybe
+                                    putStrLn $ show aionJSONValue
+                                else
+                                    putStrLn "I could not convert the record to a Aeson Object"  
+            else 
+                putStrLn "error: Could not retrive data for this key" 
 
     | ( (head args) == "run-query" ) && ( length args >= 2 ) = do 
         let pattern = ( head $ drop 1 args )

@@ -96,13 +96,17 @@ extractLocationpathsForAionCASHashAndQuery _ "" _ = do
     return $ Just []
 extractLocationpathsForAionCASHashAndQuery aion_cas_hash pattern current_path = do
     aionJSONValueAsString <- AesonObjectsUtils.getAesonJSONStringForCASKey aion_cas_hash
-    let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject aionJSONValueAsString
-    if M.isJust aionJSONValueMaybe
-        then do 
-            let aionJSONValue = M.fromJust aionJSONValueMaybe
-            extractLocationpathsForAionJsonObjectAndQuery aionJSONValue pattern current_path 
-        else
-            return Nothing    
+    if M.isJust aionJSONValueAsString
+        then do
+            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject $ M.fromJust aionJSONValueAsString
+            if M.isJust aionJSONValueMaybe
+                then do 
+                    let aionJSONValue = M.fromJust aionJSONValueMaybe
+                    extractLocationpathsForAionJsonObjectAndQuery aionJSONValue pattern current_path 
+                else
+                    return Nothing    
+        else do
+            return Nothing
 
 -- -----------------------------------------------------------
 

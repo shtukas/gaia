@@ -98,7 +98,7 @@ type Locationpath = String
 -- Getting JSON Strings From Storage
 -- -----------------------------------------------------------
 
-getAesonJSONStringForCASKey :: String -> IO String
+getAesonJSONStringForCASKey :: String -> IO ( Maybe String )
 getAesonJSONStringForCASKey hash = ContentAddressableStore.get hash
 
 -- -----------------------------------------------------------

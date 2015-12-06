@@ -15,6 +15,6 @@ set value =
         Xcache.set ( key2 ) value
         return key2
 
-get :: String -> IO String
+get :: String -> IO ( Maybe String )
 get key = Xcache.get key
 

@@ -8,8 +8,12 @@ import qualified Data.Maybe                 as M
 aionTreeFsckCASKey :: String -> IO Bool
 aionTreeFsckCASKey caskey = do
     string <- AesonObjectsUtils.getAesonJSONStringForCASKey caskey
-    let aesonValue = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject $ string
-    aionTreeFsckAesonValue $ M.fromJust aesonValue
+    if M.isJust string
+        then do
+            let aesonValue = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject $ M.fromJust string
+            aionTreeFsckAesonValue $ M.fromJust aesonValue
+        else do
+            return False
 
 -- This function checks the Aion Tree below a Aeson Value
 aionTreeFsckAesonValue :: A.Value -> IO Bool
