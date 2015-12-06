@@ -25,7 +25,7 @@ location: /Galaxy/Pascal OS
 merkle  : 167d207dd4a14bc619e723fd770d7c1f777f3ec3
 ```
 
-- `gaia-utils get-merkle-root` shows the value of the current Merkle root. This value is written after a run of the scanner.
+- `gaia-utils get-merkle-roots` shows the value of the current Merkle roots against each FS Scan Root.
 - `gaia-utils cas-get <key>` this is the `get` function of the Contents Adressable Store. Use it if you want to see the data stored against a key. (Mostly used to retrieve Aion JSON objects.) 
 - `gaia-utils expose-aeson-object <key>` shows the string representation of a Aeson object. The keys are the same keys you would use for Aion objects. 
 - `gaia-utils run-query <pattern>` runs a query against the Aion Tree(s). Returns a list of locationpaths.

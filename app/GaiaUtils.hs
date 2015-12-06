@@ -37,8 +37,12 @@ doTheThing1 args
         scanroots <- FSRootsManagement.getFSScanRoots
         _ <- sequence $ map ( \scanroot -> do 
                             putStrLn $ "location: "++scanroot
-                            merkle <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
-                            putStrLn $ "merkle  : "++(M.fromJust merkle) 
+                            merkle <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
+                            if M.isJust merkle
+                                then do
+                                    putStrLn $ "merkle  : "++(M.fromJust merkle) 
+                                else
+                                    putStrLn "merkle  : Unknown!"
                        ) scanroots
         return ()
 
@@ -114,7 +118,7 @@ doTheThing1 args
 
     | (head args) == "status-report" = do
         roots <- FSRootsManagement.getFSScanRoots
-        putStr "FS Scan Root File has "
+        putStr "FS Scan Root file has "
         putStr $ show $ length roots
         putStrLn " elements"
 
