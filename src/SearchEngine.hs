@@ -21,6 +21,8 @@ import qualified Data.HashMap.Strict as HM
 
 import qualified AesonObjectsUtils
 
+import qualified UserPreferences
+
 type Locationpath = String
 
 -- -----------------------------------------------------------
@@ -28,8 +30,7 @@ type Locationpath = String
 getMerkleRoot :: IO ( Maybe String )
 getMerkleRoot = 
     do
-        folderpath <- Dir.getAppUserDataDirectory "gaia"
-        let filepath = folderpath Prelude.++ "/" Prelude.++"merkleroot"
+        filepath <- UserPreferences.getMerkleRootFilepath
         bool <- Dir.doesFileExist filepath
         if bool
             then do

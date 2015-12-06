@@ -7,16 +7,11 @@ import System.Directory as Dir
 import System.IO
 import qualified Data.List
 import qualified Data.Text
-
-getFSRootsListingFilePaths :: IO String
-getFSRootsListingFilePaths = do
-    folderpath <- Dir.getAppUserDataDirectory "gaia"
-    let filepath = folderpath ++ "/" ++ "FSRootsListing.txt"
-    return filepath
+import qualified UserPreferences
 
 addFSRoot :: String -> IO ()
 addFSRoot locationpath = do
-    filepath <- getFSRootsListingFilePaths
+    filepath <- UserPreferences.getFSRootsListingFilepath
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
@@ -26,7 +21,7 @@ addFSRoot locationpath = do
 
 printFSRootsListing :: IO ()
 printFSRootsListing = do
-    filepath <- getFSRootsListingFilePaths
+    filepath <- UserPreferences.getFSRootsListingFilepath
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
@@ -40,7 +35,7 @@ printFSRootsListing = do
 
 removeFSRoot :: String -> IO ()
 removeFSRoot root = do
-    filepath <- getFSRootsListingFilePaths
+    filepath <- UserPreferences.getFSRootsListingFilepath
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do

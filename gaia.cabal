@@ -25,6 +25,7 @@ library
                      , SearchEngine
                      , ScanningAndRecordingManager
                      , SystemIntegrity
+                     , UserPreferences
                      , Xcache
   build-depends:       base >= 4.7 && < 5
                     -- below this line in alphabetical order
