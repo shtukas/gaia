@@ -1,8 +1,8 @@
 # Gaia
 
-Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx-Ruby) in Haskell where the regular file system *is* the repository. 
+Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx) with ideas coming from the proof-of-concept [Genesis](https://github.com/shutkas/Genesis).
 
-As Gaia will be replacing Nyx expect quite a few functionalities to be added to the future (most of Nyx will be reimplemented in Gaia), but in essence Gaia's showcase functionality -- what motivated the proof-of-concept Gaia-Genesis [Gaia-Genesis](https://github.com/shutkas/Gaia-Genesis) -- is the ability to search and browse one of your external drives despite it having been disconnected [1]. 
+With Gaia, not only the regular collection of Nyx objects will be available, not only will you be able to use your regular local file system hierarchy as repository, but you will also be able to browse (and partially access) files on your external hard drives while they are disconnected [1]. 
 
 [1] Admitedly one of Pascal's key steps towards world domination.
 
