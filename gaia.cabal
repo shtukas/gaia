@@ -16,9 +16,9 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   ghc-options:         -Wall -fwarn-tabs
-  exposed-modules:     GaiaHello
+  exposed-modules:
                     -- below this line in alphabetical order
-                     , AesonObjectsUtils
+                       AesonObjectsUtils
                      , ContentAddressableStore
                      , FSRootsManagement
                      , Gaia.Directives
@@ -31,32 +31,14 @@ library
   build-depends:       base >= 4.7 && < 5
                     -- below this line in alphabetical order
                      , aeson
+                     , blaze-html
                      , bytestring
                      , directory
                      , filepath
+                     , happstack-lite
                      , parsec
                      , scientific
                      , SHA
-                     , text
-                     , time
-                     , unix
-                     , unordered-containers
-                     , vector
-  default-language:    Haskell2010
-
-executable gaia
-  hs-source-dirs:      app
-  main-is:             Gaia.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -fwarn-tabs
-  build-depends:       base
-                     , gaia
-                    -- below this line in alphabetical order
-                     , aeson
-                     , bytestring
-                     , directory
-                     , filepath
-                     , SHA
-                     , scientific
                      , text
                      , time
                      , unix
@@ -84,17 +66,19 @@ executable gaia-utils
                      , vector
   default-language:    Haskell2010
 
-executable gaia-scan
+executable gaia-web
   hs-source-dirs:      app
-  main-is:             GaiaScan.hs
+  main-is:             GaiaWeb.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -fwarn-tabs
   build-depends:       base
                      , gaia
                     -- below this line in alphabetical order
                      , aeson
+                     , blaze-html
                      , bytestring
                      , directory
                      , filepath
+                     , happstack-lite
                      , SHA
                      , scientific
                      , text
