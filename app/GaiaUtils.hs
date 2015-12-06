@@ -2,8 +2,6 @@ module Main where
 
 import System.Environment
 import qualified SearchEngine
-import Data.Maybe
-import System.Posix.User
 import qualified ScanningAndRecordingManager
 import qualified ContentAddressableStore
 import qualified Data.Maybe as M
@@ -13,12 +11,13 @@ import qualified FSRootsManagement
 
 printHelp :: IO ()
 printHelp = do
-    putStrLn "    usage: gaia-utils run-scan-at-default-location"
-    putStrLn "    usage: gaia-utils get-merkle-root"
+    putStrLn "    usage: gaia-utils general-scan"
+    putStrLn "    usage: gaia-utils get-merkle-roots"
     putStrLn "    usage: gaia-utils cas-get <key>"
     putStrLn "    usage: gaia-utils expose-aeson-object <key>"
     putStrLn "    usage: gaia-utils run-query <pattern>"
     putStrLn "    usage: gaia-utils fsck"
+    putStrLn "    usage: gaia-utils status-report"
     putStrLn "    usage: gaia-utils print-fs-roots"
     putStrLn "    usage: gaia-utils add-fs-root <locationpath>"
     putStrLn "    usage: gaia-utils remove-fs-root <locationpath>"
@@ -31,14 +30,17 @@ doTheThing1 args
         printHelp
         putStrLn ""        
 
-    | (head args) == "run-scan-at-default-location" = do 
-        username <- System.Posix.User.getLoginName
-        ScanningAndRecordingManager.cycleMerkleRootComputationForLocation $ "/Users/"++username++"/Desktop"
-        putStrLn "Done!"
+    | (head args) == "general-scan" = do
+        ScanningAndRecordingManager.generalScan
 
-    | (head args) == "get-merkle-root" = do 
-        root <- SearchEngine.getMerkleRoot
-        putStrLn $ fromMaybe "could not find the root!" root
+    | (head args) == "get-merkle-roots" = do
+        scanroots <- FSRootsManagement.getFSScanRoots
+        _ <- sequence $ map ( \scanroot -> do 
+                            putStrLn $ "location: "++scanroot
+                            merkle <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
+                            putStrLn $ "merkle  : "++(M.fromJust merkle) 
+                       ) scanroots
+        return ()
 
     | ( (head args) == "cas-get" ) && ( length args >= 2 ) = do 
         let key = ( head $ drop 1 args )
@@ -49,7 +51,7 @@ doTheThing1 args
             else
                 putStrLn "error: Could not retrive data for this key"
 
-    | ( (head args) == "expose-aeson-object" ) && ( length args >= 2 ) = do 
+    | ( (head args) == "expose-aeson-object" ) && ( length args >= 2 ) = do
         let aion_cas_hash = ( head $ drop 1 args )
         aionJSONValueAsString <- ContentAddressableStore.get aion_cas_hash
         if M.isJust aionJSONValueAsString
@@ -68,38 +70,62 @@ doTheThing1 args
                                     putStrLn "I could not convert the record to a Aeson Object"  
             else 
                 putStrLn "error: Could not retrive data for this key" 
+        return ()
 
-    | ( (head args) == "run-query" ) && ( length args >= 2 ) = do 
+    | ( (head args) == "run-query" ) && ( length args >= 2 ) = do
         let pattern = ( head $ drop 1 args )
-        result <- SearchEngine.runQueryAgainMerkleRootUsingStoredData pattern
-        if M.isJust result
-            then 
-                do 
-                    let folderpaths = M.fromJust result
-                    sequence $ map (\folderpath -> putStrLn ( "> " ++ folderpath)) folderpaths
-                    return ()
-            else 
-                putStrLn "Query has failed (for some reasons...)"
+        scanroots <- FSRootsManagement.getFSScanRoots
+        _ <- sequence $ map ( \scanroot -> do 
+                            putStrLn scanroot
+                            merkleroot <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
+                            if M.isJust merkleroot
+                                then do
+                                    locationpaths <- SearchEngine.runQueryAgainMerkleRootUsingStoredData scanroot ( M.fromJust merkleroot ) pattern -- IO ( Maybe [ Locationpath ] )
+                                    -- Maybe [ Locationpath ]
+                                    if M.isJust locationpaths
+                                        then do 
+                                            let folderpaths = M.fromJust locationpaths
+                                            _ <- sequence $ map (\folderpath -> putStrLn ( "    " ++ folderpath)) folderpaths
+                                            return ()
+                                        else 
+                                            putStrLn "error: Query has failed (for some reasons...)"
+                                else
+                                    putStrLn "error: Could not retrieve Merkle root for this location"
 
-    | (head args) == "fsck" = do 
-        root <- SearchEngine.getMerkleRoot
-        if M.isJust root
-            then do
-                bool <- SystemIntegrity.aionTreeFsckCASKey ( M.fromJust root  )
-                if bool
-                    then putStrLn "Aion Tree is correct"
-                    else putStrLn "error: Aion Tree does not check out"
-            else
-                putStrLn "error: I could not retrieve the Merkle root to run the scan"
+                       ) scanroots
+        return ()
 
-    | (head args) == "print-fs-roots" = do 
+    | (head args) == "fsck" = do
+        scanroots <- FSRootsManagement.getFSScanRoots
+        _ <- sequence $ map ( \scanroot -> do 
+                            putStrLn scanroot
+                            merkleroot <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
+                            if M.isJust merkleroot
+                                then do
+                                    bool <- SystemIntegrity.aionTreeFsckCASKey ( M.fromJust merkleroot )
+                                    if bool
+                                        then putStrLn "Aion Tree is correct"
+                                        else putStrLn "error: Aion Tree does not check out"
+                                else
+                                    putStrLn "error: Could not retrieve Merkle root for this location"
+
+                       ) scanroots
+        return ()
+
+    | (head args) == "status-report" = do
+        roots <- FSRootsManagement.getFSScanRoots
+        putStr "FS Scan Root File has "
+        putStr $ show $ length roots
+        putStrLn " elements"
+
+    | (head args) == "print-fs-roots" = do
         FSRootsManagement.printFSRootsListing
 
-    | ( (head args) == "add-fs-root" ) && ( length args >= 2 ) = do 
+    | ( (head args) == "add-fs-root" ) && ( length args >= 2 ) = do
         let fsroot = ( head $ drop 1 args )
         FSRootsManagement.addFSRoot fsroot       
 
-    | ( (head args) == "remove-fs-root" ) && ( length args >= 2 ) = do 
+    | ( (head args) == "remove-fs-root" ) && ( length args >= 2 ) = do
         let fsroot = ( head $ drop 1 args )
         FSRootsManagement.removeFSRoot fsroot  
 

@@ -23,10 +23,3 @@ getFSRootsListingFilepath = do
     folderpath <- Dir.getAppUserDataDirectory "gaia"
     return (folderpath ++ "/" ++ "FSRootsListing.txt")
 
-getMerkleRootFilepath :: IO String
-getMerkleRootFilepath = 
-    do
-        folderpath <- Dir.getAppUserDataDirectory "gaia"
-        return (folderpath ++ "/" ++"merkleroot")
-
-

@@ -1,42 +1,18 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
 module SearchEngine (
-    getMerkleRoot,
-    extractLocationpathsForAionCASHashAndQuery,
+    extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath,
     runQueryAgainMerkleRootUsingStoredData
 ) where
-
-import qualified System.Directory as Dir
-
-import qualified ContentAddressableStore
 
 import qualified Data.Aeson as A
     -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
 
-import qualified Data.ByteString.Lazy.Char8 as Char8
-
 import qualified Data.Maybe as M
-
-import qualified Data.HashMap.Strict as HM
 
 import qualified AesonObjectsUtils
 
-import qualified UserPreferences
-
 type Locationpath = String
-
--- -----------------------------------------------------------
-
-getMerkleRoot :: IO ( Maybe String )
-getMerkleRoot = 
-    do
-        filepath <- UserPreferences.getMerkleRootFilepath
-        bool <- Dir.doesFileExist filepath
-        if bool
-            then do
-                root <- readFile filepath
-                return $ Just root
-            else return Nothing
 
 -- -----------------------------------------------------------
 
@@ -62,7 +38,7 @@ extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObjectDirectory patt
             -- ( foldername, [CAS-Keys(s)] ) 
             -- ( String, [String] )
 
-        let array1 = map (\k -> extractLocationpathsForAionCASHashAndQuery k pattern (current_path ++ "/" ++ foldername) ) cas_keys
+        let array1 = map (\k -> extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath k pattern (current_path ++ "/" ++ foldername) ) cas_keys
             -- [ IO ( Maybe [ Locationpath ] ) ]
 
         let array2 = sequence array1
@@ -90,12 +66,12 @@ extractLocationpathsForAionJsonObjectAndQuery aesonObject pattern current_path =
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAionCASHashAndQuery <aion cas hash> <search pattern> <current path>
+-- extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath <aion cas hash> <search pattern> <current path>
 
-extractLocationpathsForAionCASHashAndQuery :: String -> String -> String -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionCASHashAndQuery _ "" _ = do
+extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath :: String -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath _ "" _ = do
     return $ Just []
-extractLocationpathsForAionCASHashAndQuery aion_cas_hash pattern current_path = do
+extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath aion_cas_hash pattern current_path = do
     aionJSONValueAsString <- AesonObjectsUtils.getAesonJSONStringForCASKey aion_cas_hash
     if M.isJust aionJSONValueAsString
         then do
@@ -111,12 +87,7 @@ extractLocationpathsForAionCASHashAndQuery aion_cas_hash pattern current_path = 
 
 -- -----------------------------------------------------------
 
-runQueryAgainMerkleRootUsingStoredData :: String -> IO ( Maybe [ Locationpath ] )
-runQueryAgainMerkleRootUsingStoredData pattern = do
-    merkleroot <- getMerkleRoot
-    if M.isJust merkleroot
-        then
-            do extractLocationpathsForAionCASHashAndQuery ( M.fromJust merkleroot ) pattern "/Users/pascal/Desktop"
-        else
-            return Nothing
+runQueryAgainMerkleRootUsingStoredData :: String -> String -> String -> IO ( Maybe [ Locationpath ] )
+runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern = do
+    extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath merkleroot pattern fsroot
 

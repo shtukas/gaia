@@ -7,8 +7,6 @@ import qualified Data.ByteString.Lazy.Char8 as Char8
 import           Data.Digest.Pure.SHA       as SHA
 import qualified Data.Time.Clock.POSIX      as Time
 import qualified System.Directory           as Dir
-import           System.IO.Error            (catchIOError, ioError,
-                                             isDoesNotExistError)
 import qualified Data.Maybe as M
 import qualified UserPreferences
 

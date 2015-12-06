@@ -31,8 +31,6 @@ import qualified Data.Vector                as V
 
 import           Data.Scientific            as S
 
-import qualified ContentAddressableStore
-
 type Locationpath = String
 
 {-|

@@ -16,7 +16,15 @@ The data stored in Xcache are called **Aion points**. They are defined as JSON o
 
 `gaia-utils` can currently be used used to explore the current features of Gaia.
 
-- `gaia-utils run-scan-at-default-location` runs a scan at the current default location, which on MasOSX is the user Desktop.
+- `gaia-utils general-scan` runs a general scan. A general scan is defined as running a scan againt each currently known FS Scan Root. See below for managing FS Scan Roots. This command outputs each Scan Root and the corresponding Merkle Root.
+
+```
+location: /Users/pascal/Desktop
+merkle  : 51154eac132a82b85efac19dccb9db1ee02fb666
+location: /Galaxy/Pascal OS
+merkle  : 167d207dd4a14bc619e723fd770d7c1f777f3ec3
+```
+
 - `gaia-utils get-merkle-root` shows the value of the current Merkle root. This value is written after a run of the scanner.
 - `gaia-utils cas-get <key>` this is the `get` function of the Contents Adressable Store. Use it if you want to see the data stored against a key. (Mostly used to retrieve Aion JSON objects.) 
 - `gaia-utils expose-aeson-object <key>` shows the string representation of a Aeson object. The keys are the same keys you would use for Aion objects. 

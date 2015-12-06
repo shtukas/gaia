@@ -22,6 +22,7 @@ addFSRoot locationpath = do
             appendFile filepath (locationpath++ "\n")
         else do
             writeFile filepath (locationpath++ "\n")
+    printFSRootsListing
 
 printFSRootsListing :: IO ()
 printFSRootsListing = do
@@ -32,7 +33,6 @@ printFSRootsListing = do
             contents <- readFile filepath
             putStrLn "-- fs roots file ------------"
             putStr contents
-            putStrLn ""
         else do
             putStrLn "error: FSRootsListing.txt does not exist yet"
             putStrLn "       Try adding an FS Root."
@@ -49,7 +49,6 @@ removeFSRoot root = do
             -- Otherwise the lazy read keeps a lock and the writeFile fails
             putStrLn "-- old file ------------"
             putStr oldcontents1
-            putStrLn ""
             
             let oldcontents2 = Data.List.lines oldcontents1
             let oldcontents3 = filter (\line -> (Data.Text.strip $ Data.Text.pack line)/=(Data.Text.pack root )) oldcontents2
@@ -59,12 +58,25 @@ removeFSRoot root = do
             oldcontents5 <- readFile filepath
             putStrLn "-- new file ------------"
             putStr oldcontents5
-            putStrLn ""
 
         else do
             putStrLn "error: FSRootsListing.txt does not exist yet"
             putStrLn "       Try adding an FS Root."
 
+-- --------------------------------------------------------------------------
+
+getFSScanRoots :: IO [ String ]
+getFSScanRoots = do
+    filepath <- UserPreferences.getFSRootsListingFilepath
+    fileexists <- Dir.doesFileExist filepath
+    if fileexists
+        then do
+            contents1 <- readFile filepath
+            let contents2 = Data.List.lines contents1
+            let contents3 = filter (\line -> (length line)>0 ) contents2
+            return contents3
+        else do
+            return []
 
 -- --------------------------------------------------------------------------
 -- Mapping FS Roots to Xcache Keys

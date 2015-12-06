@@ -2,23 +2,16 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module ScanningAndRecordingManager (
-    cycleMerkleRootComputationForLocation
+    getCurrentMerkleRootForFSScanRoot,
+    generalScan
 ) where
 
-import           ContentAddressableStore
-import           Control.Monad              (unless)
 import qualified Data.Aeson                 as A
     -- JSON library
     -- A.encode :: A.ToJSON a => a -> Char8.ByteString
 
-import           Data.Maybe
-import           Data.Scientific
 import qualified Data.Text                  as T
     -- T.pack :: String -> T.Text
-
-import qualified Data.Vector                as V
-import qualified GHC.Exts                   as E
-    -- support for the JSON library
 
 import qualified System.Directory           as Dir
     -- doesDirectoryExist :: FilePath -> IO Bool
@@ -29,19 +22,18 @@ import           System.FilePath
     -- type FilePath = String
 
 import           System.Posix
-import           System.Posix.Files
-    -- fileSize :: FileStatus -> FileOffset
-    -- getFileStatus :: FilePath -> IO FileStatus
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
     -- Char8.pack :: [Char] -> Char8.ByteString
     -- Char8.readFile :: FilePath -> IO Char8.ByteString
 
-import           Data.Digest.Pure.SHA       as SHA
-    -- SHA.sha1 :: Char8.ByteString -> Digest SHA1State
-    -- SHA.showDigest :: Digest t -> String
-
 import qualified AesonObjectsUtils
+
+import qualified FSRootsManagement
+
+import qualified Xcache
+
+import qualified Data.Maybe                 as M
 
 type Filepath = String
 type Folderpath = String
@@ -65,8 +57,8 @@ excludeDotFolders = filter (\filename -> head filename /= '.' )
 
 -- ---------------------------------------------------------------
 
-locationToAesonJSONVAlue :: Locationpath -> IO A.Value
-locationToAesonJSONVAlue location = do
+locationToAesonJSONVAlueRecursivelyComputedaAndStored :: Locationpath -> IO A.Value
+locationToAesonJSONVAlueRecursivelyComputedaAndStored location = do
     isFile      <- Dir.doesFileExist location
     isDirectory <- Dir.doesDirectoryExist location
     if isFile
@@ -99,7 +91,7 @@ filepathToAesonJSONValue filepath = do
 folderpathToAesonJSONValue :: Folderpath -> IO A.Value
 folderpathToAesonJSONValue folderpath = do
     directoryContents <- Dir.getDirectoryContents folderpath
-    aesonvalues <- mapM (\filename -> locationToAesonJSONVAlue $ folderpath ++ "/" ++ filename)
+    aesonvalues <- mapM (\filename -> locationToAesonJSONVAlueRecursivelyComputedaAndStored $ folderpath ++ "/" ++ filename)
                        (excludeDotFolders directoryContents)
     caskeys <- mapM AesonObjectsUtils.commitAesonJSONValueToCAS aesonvalues
     let aesonvalues2 = map (A.String . T.pack) caskeys
@@ -113,29 +105,41 @@ locationExists locationpath = do
     exists2 <- Dir.doesFileExist locationpath
     return $ exists1 || exists2
 
-computeMerkleRootForLocation :: Locationpath -> IO ( Maybe String )
-computeMerkleRootForLocation locationpath = do
+computeMerkleRootForLocationRecursivelyComputedaAndStored :: Locationpath -> IO ( Maybe String )
+computeMerkleRootForLocationRecursivelyComputedaAndStored locationpath = do
     exists <- locationExists locationpath
     if exists
         then do
-            value <- locationToAesonJSONVAlue locationpath
+            value <- locationToAesonJSONVAlueRecursivelyComputedaAndStored locationpath
             string <- AesonObjectsUtils.commitAesonJSONValueToCAS value
             return $ Just string
         else
             return Nothing
 
--- In this version we scan one location, this will change later.
+commitMerkleRootForFSScanRoot :: String -> String -> IO ()
+commitMerkleRootForFSScanRoot merkleroot fsscanlocationpath = do
+    Xcache.set (FSRootsManagement.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan fsscanlocationpath) merkleroot
 
-commitMerkleRootToUserAppData :: String -> IO ()
-commitMerkleRootToUserAppData root =
-    do
-        folderpath <- Dir.getAppUserDataDirectory "gaia"
-        Dir.createDirectoryIfMissing True folderpath
-        let filepath = folderpath ++ "/" ++ "merkleroot"
-        writeFile filepath root
+getCurrentMerkleRootForFSScanRoot :: String -> IO ( Maybe String )
+getCurrentMerkleRootForFSScanRoot locationpath = Xcache.get (FSRootsManagement.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
 
-cycleMerkleRootComputationForLocation :: String -> IO ()
-cycleMerkleRootComputationForLocation location =
-    do
-        root <- computeMerkleRootForLocation location
-        unless (fromMaybe "" root == "") $ commitMerkleRootToUserAppData $ fromMaybe "" root
+-- ---------------------------------------------------------------
+
+generalScan :: IO ()
+generalScan = do
+    scanroots <- FSRootsManagement.getFSScanRoots
+    _ <- sequence $ map (\scanroot -> 
+                            do
+                                s1 <- computeMerkleRootForLocationRecursivelyComputedaAndStored scanroot 
+                                -- s1: Maybe String
+                                if M.isJust s1 
+                                    then do
+                                        putStrLn $ "location: "++scanroot
+                                        putStrLn $ "merkle  : "++(M.fromJust s1) 
+                                        commitMerkleRootForFSScanRoot scanroot (M.fromJust s1)
+                                    else do
+                                        return ()
+                         ) scanroots
+    return ()
+
+
