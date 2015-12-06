@@ -81,18 +81,11 @@ extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObjectDirectory patt
 
 extractLocationpathsForAionJsonObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
 extractLocationpathsForAionJsonObjectAndQuery aesonObject pattern current_path = 
-    let 
-        value1 = AesonObjectsUtils.extractListOfPairsFromAesonValueObject aesonObject
-        value2 = Prelude.lookup "aion-type" ( M.fromJust value1 )
-        value3 = M.fromJust value2
-        value4 = AesonObjectsUtils.extractUnderlyingTextFromAesonValueString value3
-        value5 = M.fromJust value4
-    in
-        if value5=="file"
-            then do
-                extractLocationpathsForAionJsonFileObjectAndQuery aesonObject pattern current_path
-            else do
-                extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObject pattern current_path
+    if AesonObjectsUtils.aesonValueIsFile aesonObject
+        then do
+            extractLocationpathsForAionJsonFileObjectAndQuery aesonObject pattern current_path
+        else do
+            extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObject pattern current_path
 
 -- -----------------------------------------------------------
 
@@ -102,7 +95,7 @@ extractLocationpathsForAionCASHashAndQuery :: String -> String -> String -> IO (
 extractLocationpathsForAionCASHashAndQuery _ "" _ = do
     return $ Just []
 extractLocationpathsForAionCASHashAndQuery aion_cas_hash pattern current_path = do
-    aionJSONValueAsString <- AesonObjectsUtils.getAesonJSONStringForCASHash aion_cas_hash
+    aionJSONValueAsString <- AesonObjectsUtils.getAesonJSONStringForCASKey aion_cas_hash
     let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject aionJSONValueAsString
     if M.isJust aionJSONValueMaybe
         then do 

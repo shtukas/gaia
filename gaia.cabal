@@ -23,6 +23,7 @@ library
                      , Gaia.Types
                      , SearchEngine
                      , ScanningAndRecordingManager
+                     , SystemIntegrity
                      , Xcache
   build-depends:       base >= 4.7 && < 5
                     -- below this line in alphabetical order

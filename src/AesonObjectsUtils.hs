@@ -98,8 +98,8 @@ type Locationpath = String
 -- Getting JSON Strings From Storage
 -- -----------------------------------------------------------
 
-getAesonJSONStringForCASHash :: String -> IO String
-getAesonJSONStringForCASHash hash = ContentAddressableStore.get hash
+getAesonJSONStringForCASKey :: String -> IO String
+getAesonJSONStringForCASKey hash = ContentAddressableStore.get hash
 
 -- -----------------------------------------------------------
 -- Building Aeson Values
@@ -158,6 +158,17 @@ convertJSONStringIntoAesonJSONObject string =
 -- -----------------------------------------------------------
 -- Extracting Data from Aeson Value
 -- -----------------------------------------------------------
+
+aesonValueIsFile :: A.Value -> Bool
+aesonValueIsFile aesonValue =
+    let 
+        value1 = extractListOfPairsFromAesonValueObject aesonValue
+        value2 = Prelude.lookup "aion-type" ( M.fromJust value1 )
+        value3 = M.fromJust value2
+        value4 = extractUnderlyingTextFromAesonValueString value3
+        value5 = M.fromJust value4
+    in
+        value5=="file"    
 
 extractListOfPairsFromAesonValueObject :: A.Value -> Maybe [(T.Text ,A.Value)]
 extractListOfPairsFromAesonValueObject (A.Object x) = Just $ HM.toList x

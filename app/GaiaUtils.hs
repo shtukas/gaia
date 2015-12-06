@@ -8,6 +8,7 @@ import qualified ScanningAndRecordingManager
 import qualified ContentAddressableStore
 import qualified Data.Maybe as M
 import qualified AesonObjectsUtils
+import qualified SystemIntegrity
 
 printHelp :: IO ()
 printHelp = do
@@ -16,6 +17,7 @@ printHelp = do
     putStrLn "    usage: gaia-utils cas-get <key>"
     putStrLn "    usage: gaia-utils expose-aeson-object <key>"
     putStrLn "    usage: gaia-utils run-query <pattern>"
+    putStrLn "    usage: gaia-utils fsck"
 
 doTheThing1 :: [String] -> IO ()
 doTheThing1 args
@@ -66,6 +68,17 @@ doTheThing1 args
                     return ()
             else 
                 putStrLn "Query has failed (for some reasons...)"
+
+    | (head args) == "fsck" = do 
+        root <- SearchEngine.getMerkleRoot
+        if M.isJust root
+            then do
+                bool <- SystemIntegrity.aionTreeFsckCASKey ( M.fromJust root  )
+                if bool
+                    then putStrLn "Aion Tree is correct"
+                    else putStrLn "error: Aion Tree does not check out"
+            else
+                putStrLn "error: I could not retrieve the Merkle root to run the scan"
 
     | otherwise = do 
         putStrLn ""
