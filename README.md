@@ -2,9 +2,15 @@
 
 Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx) with ideas coming from the proof-of-concept [Genesis](https://github.com/shutkas/Genesis).
 
-With Gaia, not only the regular collection of Nyx objects will be available, not only will you be able to see your unmodified regular local file system hierarchy as repository, but you will also be able to browse (and partially access) files on your external hard drives while they are disconnected [1]. 
+With Gaia, not only the regular collection of Nyx objects will be available (with the features that come with them), not only will you be able to see your unmodified regular local file system hierarchy as repository, but you will also be able to browse (and partially access) files on your external hard drives while they are disconnected [1]. 
 
-[1] Admitedly one of Pascal's key steps towards world domination.
+[1] Admittedly one of Pascal's key steps towards world domination.
+
+## Why ?
+
+Between our biological memory and the world wide web, there is a that sweet spot called "your own electronic data", mostly (but not always) located on laptops and external hard drives. Gaia (and Nyx before it) is a tool that allows its users (myself and Marcello -- at the latest count) to find things very quickly within our ever increasing large and heterogeneous collection of personal data, not like programs such as Google Desktop, but instead along the lines of our own mental associations. 
+
+I like thinking that Nyx/Gaia are designed to make personal biological memories and personal electronic storages devices feel like a single continuous entity.
 
 ## Executables
 
