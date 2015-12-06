@@ -1,6 +1,6 @@
 module Xcache (
-    set,
-    get
+    set, -- String -> String -> IO ()
+    get  -- String -> IO ( Maybe String )
 ) where
 
 import qualified Data.ByteString.Lazy.Char8 as Char8

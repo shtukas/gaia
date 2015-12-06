@@ -8,6 +8,13 @@ import System.IO
 import qualified Data.List
 import qualified Data.Text
 import qualified UserPreferences
+import qualified Xcache
+import qualified Data.Maybe                 as M
+
+type Locationpath = String
+
+-- --------------------------------------------------------------------------
+-- Managing ~/.gaia/FSRootsListing.txt
 
 addFSRoot :: String -> IO ()
 addFSRoot locationpath = do
@@ -62,5 +69,17 @@ removeFSRoot root = do
             putStrLn "       Try adding an FS Root."
 
 
+-- --------------------------------------------------------------------------
+-- Mapping FS Roots to Xcache Keys
+-- We are going to store the Merkle roots of each FS Scan Root against the FS Scan Root
+-- We then just need a map from FS Scan Roots to Xcache Keys.
+
+xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan :: Locationpath -> String
+xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath = "f9c43482-2ae6-4ecc-be23-d4b1f0c7c85d:"++locationpath
+
+merkleRootForFSRootScan :: Locationpath -> IO ( Maybe String )
+merkleRootForFSRootScan locationpath = do
+    let xcachekey = xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath
+    Xcache.get xcachekey
 
 
