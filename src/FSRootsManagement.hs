@@ -2,14 +2,11 @@
 
 module FSRootsManagement where
 
-import System.Environment
 import System.Directory as Dir
-import System.IO
 import qualified Data.List
 import qualified Data.Text
 import qualified UserPreferences
 import qualified Xcache
-import qualified Data.Maybe                 as M
 
 type Locationpath = String
 
