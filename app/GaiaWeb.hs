@@ -1,7 +1,16 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
--- http://www.happstack.com
--- http://localhost:8000/echo
+{-
+
+runs at http://localhost:8000
+
+http://www.happstack.com
+http://www.happstack.com/page/view-page-slug/9/happstack-lite
+This is my first use of happstack, I will be putting a lot of comments in the code. 
+
+HTML Templates : http://jaspervdj.be/blaze/tutorial.html
+
+-}
 
 module Main where
 
@@ -18,13 +27,18 @@ import qualified Text.Blaze.Html5.Attributes as A
 main :: IO ()
 main = serve Nothing myApp
 
+-- Server runs at http://localhost:8000
+
 myApp :: ServerPart Response
 myApp = msum
    [ 
-     -- dir "hello"   $ hello
-     -- , 
-     homePage
+        dir "api" $ dir "ping" $ pong , 
+        fileServing
    ]
+
+fileServing :: ServerPart Response
+fileServing = 
+    serveDirectory EnableBrowsing ["index.html"] "web-root"
 
 template :: Text -> Html -> Response
 template title body = toResponse $
@@ -33,19 +47,14 @@ template title body = toResponse $
        H.title (toHtml title)
      H.body $ do
        body
-       p $ a ! href "/" $ "back home"
 
-homePage :: ServerPart Response
-homePage =
+pong :: ServerPart Response
+pong =
     ok $ template "home page" $ do
-            H.h1 "Hello!"
-            H.p "Writing applications with happstack-lite is fast and simple!"
-            H.p "Check out these killer apps."
-            H.p $ a ! href "/echo/secret%20message"  $ "echo"
-            H.p $ a ! href "/query?foo=bar" $ "query parameters"
-            H.p $ a ! href "/form"          $ "form processing"
-            H.p $ a ! href "/fortune"       $ "(fortune) cookies"
-            H.p $ a ! href "/files"         $ "file serving"
-            H.p $ a ! href "/upload"        $ "file uploads"
+            H.h1 "Pong"
+
+
+
+
 
 

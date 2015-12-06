@@ -1,16 +1,14 @@
 # Gaia
 
-Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx-Ruby) in Haskell where the regular file system is the repository.
+Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx-Ruby) in Haskell where the regular file system *is* the repository. 
 
-## Status
+As Gaia will be replacing Nyx expect quite a few functionalities to be added to the future (most of Nyx will be reimplemented in Gaia), but in essence Gaia's showcase functionality -- what motivated the proof-of-concept Gaia-Genesis [Gaia-Genesis](https://github.com/shutkas/Gaia-Genesis) -- is the ability to search and browse one of your external drives despite it having been disconnected [1]. 
 
-[December 2015] Gaia is a work in progress. No, really... Instrospection capabilities are avalaible but the web application is not yet worked on.
+[1] Admitedly one of Pascal's key steps towards world domination.
 
-## Vocabulary
+## Executables
 
-There are two repositories: The regular file system tree itself, and Xcache (at least one instance of it). Gaia only reads from the regular file system tree (from root folders that are specified by the user) and stores data in Xcache.
-
-The data stored in Xcache are called **Aion points**. They are defined as JSON objects. Aion points are represented inside the program as **Aeson Values**. We also have the notion of **Gaia projection** of Aeson Values by which we extract from Aeson Values the data contained in the Value in a way that is more user friendly. **Filepath** is a complete FS path to a file. **Folderpath** is a complete FS path to a directory. The term used to refer to both Filepaths and Folderpaths is **Locationpath**.
+The two executables are `gaia-utils` for overall management and introspection (see next section for details), and `gaia-web` which starts the web server.
 
 ## gaia-utils
 
@@ -37,11 +35,11 @@ We then have three commands to manage the list of FS Scan Roots. In this commit 
 - `gaia-utils add-fs-root <locationpath>` 
 - `gaia-utils remove-fs-root <locationpath>` 
 
-The list of FS Scan Roots, can be found in the file `~/.gaia/FSRootsListing.txt`
+The list of FS Scan Roots, can be found in the file `~/.gaia/FSRootsListing.txt`.
 
 ## gaia-web
 
-`gaia-web` starts the web server.
+To run the web server do `stack exec gaia-web` (this command must be ran at the root of the source code, because the code assume that the folder "web-root" is a child of the current directory). Currently primitive, but works. In this commit queries are not yet submitted to backend, instead are echoed to the page.
 
 ## Todo
 - **In progress**: Allow users to specify the location of their Xcache repository. (Currently hardcoded to use the existing one on Pascal's computer.)
@@ -52,3 +50,9 @@ The list of FS Scan Roots, can be found in the file `~/.gaia/FSRootsListing.txt`
 - **In progress**: Recovering the functionalities of Gaia-Genesis 
 - **In progress**: Implementing the web server and have basic online search
 - Developping the Directives functionality
+
+## Vocabulary
+
+There are two repositories: The regular file system tree itself, and Xcache (at least one instance of it). Gaia only reads from the regular file system tree (from root folders that are specified by the user) and stores data in Xcache.
+
+The data stored in Xcache are called **Aion points**. They are defined as JSON objects. Aion points are represented inside the program as **Aeson Values**. We also have the notion of **Gaia projection** of Aeson Values by which we extract from Aeson Values the data contained in the Value in a way that is more user friendly. **Filepath** is a complete FS path to a file. **Folderpath** is a complete FS path to a directory. The term used to refer to both Filepaths and Folderpaths is **Locationpath**.
