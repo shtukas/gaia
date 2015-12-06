@@ -8,10 +8,8 @@ module Gaia.Directives(
 
 import           Gaia.Types
 
-import           Control.Monad          (fail)
-
 import           Text.Parsec            (alphaNum, char, many, newline, parse,
-                                         (<|>))
+                                         try, (<|>))
 import           Text.Parsec.Char       (anyChar, string)
 import           Text.Parsec.Combinator (many1, manyTill)
 import           Text.Parsec.Error      (ParseError)
@@ -27,31 +25,22 @@ type Filepath = String
 -- HELPERS
 -- note: we redefine spaces because Text.Parsec.spaces filters also newlines
 spaces :: Parser String
-spaces  = many (char ' ' <|> char '\t')
+spaces  = many (char ' ' <|> char '\t') *> return ""
 
 emptyLine :: Parser String
-emptyLine  = do
-               spaces
-               newline
-               return ""
+emptyLine  = spaces *> newline *> return ""
 
 restOfLine :: Parser String
 restOfLine  = manyTill anyChar (char '\n')
 
 comment :: Parser String
-comment  = do
-             char '#'
-             spaces
-             restOfLine
-             return ""
+comment  = char '#' *> spaces *> restOfLine
 
 ignorable :: Parser String
-ignorable  = do
-               many (comment <|> emptyLine)
-               return ""
+ignorable  = many (comment <|> emptyLine) *> return ""
 
 tag :: Parser DirectiveTag
-tag  = (string "tag" >> return Tag)
+tag  = try (string "tag" >> return Tag)
        -- <|> (string "..." >> return ...) ...
        <|> (do
               t <- many (alphaNum <|> char '_')
@@ -60,18 +49,15 @@ tag  = (string "tag" >> return Tag)
 directive :: Parser Directive
 directive  = do
                t <- tag
-               char ':'
-               spaces
+               _ <- char ':' *> spaces
                content <- restOfLine
                return (Directive t content)
 
 directives :: Parser [Directive]
 directives  = do
-                string "gaia"
-                d <- many1 (do
-                              ignorable
-                              directive)
-                ignorable
+                _ <- string "gaia"
+                d <- many1 $ try (ignorable >> directive)
+                _ <- ignorable
                 return d
 
 
