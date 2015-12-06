@@ -19,7 +19,7 @@ import qualified Data.Maybe as M
 
 import qualified Data.HashMap.Strict as HM
 
-import qualified AeonObjectsUtils
+import qualified AesonObjectsUtils
 
 type Locationpath = String
 
@@ -39,25 +39,25 @@ getMerkleRoot =
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAionJsonFileObjectAndQuery <aeonObjectFile> <search pattern> <current path>
+-- extractLocationpathsForAionJsonFileObjectAndQuery <aesonObjectFile> <search pattern> <current path>
 
 extractLocationpathsForAionJsonFileObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionJsonFileObjectAndQuery aeonObjectFile pattern current_path = 
+extractLocationpathsForAionJsonFileObjectAndQuery aesonObjectFile pattern current_path = 
     do
-        let aValue = aeonObjectFile
-            (filename, filesize, sha1shah) = AeonObjectsUtils.extractGaiaDataFromAeonValueForFile aValue
+        let aValue = aesonObjectFile
+            (filename, filesize, sha1shah) = AesonObjectsUtils.aesonValueForFileGaiaProjection aValue
         return $ Just [current_path++"/"++filename]
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAionJsonDirectoryObjectAndQuery <aeonObjectDirectory> <search pattern> <current path>
+-- extractLocationpathsForAionJsonDirectoryObjectAndQuery <aesonObjectDirectory> <search pattern> <current path>
 
 extractLocationpathsForAionJsonDirectoryObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionJsonDirectoryObjectAndQuery aeonObjectDirectory pattern current_path = 
+extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObjectDirectory pattern current_path = 
     do
-        let aValue = aeonObjectDirectory
+        let aValue = aesonObjectDirectory
 
-        let (foldername, cas_keys) = AeonObjectsUtils.extractGaiaDataFromAeonValueForDirectory aeonObjectDirectory 
+        let (foldername, cas_keys) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonObjectDirectory 
             -- ( foldername, [CAS-Keys(s)] ) 
             -- ( String, [String] )
 
@@ -80,19 +80,19 @@ extractLocationpathsForAionJsonDirectoryObjectAndQuery aeonObjectDirectory patte
 -- -----------------------------------------------------------
 
 extractLocationpathsForAionJsonObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionJsonObjectAndQuery aeonObject pattern current_path = 
+extractLocationpathsForAionJsonObjectAndQuery aesonObject pattern current_path = 
     let 
-        value1 = AeonObjectsUtils.extractListOfPairsFromAeonValueObject aeonObject
+        value1 = AesonObjectsUtils.extractListOfPairsFromAesonValueObject aesonObject
         value2 = Prelude.lookup "aion-type" ( M.fromJust value1 )
         value3 = M.fromJust value2
-        value4 = AeonObjectsUtils.extractUnderlyingTextFromAeonValueString value3
+        value4 = AesonObjectsUtils.extractUnderlyingTextFromAesonValueString value3
         value5 = M.fromJust value4
     in
         if value5=="file"
             then do
-                extractLocationpathsForAionJsonFileObjectAndQuery aeonObject pattern current_path
+                extractLocationpathsForAionJsonFileObjectAndQuery aesonObject pattern current_path
             else do
-                extractLocationpathsForAionJsonDirectoryObjectAndQuery aeonObject pattern current_path
+                extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObject pattern current_path
 
 -- -----------------------------------------------------------
 
@@ -102,8 +102,8 @@ extractLocationpathsForAionCASHashAndQuery :: String -> String -> String -> IO (
 extractLocationpathsForAionCASHashAndQuery _ "" _ = do
     return $ Just []
 extractLocationpathsForAionCASHashAndQuery aion_cas_hash pattern current_path = do
-    aionJSONValueAsString <- AeonObjectsUtils.getAeonJSONStringForCASHash aion_cas_hash
-    let aionJSONValueMaybe = AeonObjectsUtils.convertJSONStringIntoAeonJSONObject aionJSONValueAsString
+    aionJSONValueAsString <- AesonObjectsUtils.getAesonJSONStringForCASHash aion_cas_hash
+    let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject aionJSONValueAsString
     if M.isJust aionJSONValueMaybe
         then do 
             let aionJSONValue = M.fromJust aionJSONValueMaybe

@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module AeonObjectsUtils where
+module AesonObjectsUtils where
 
--- This module concentrates utility functions to facilitate the reading of Aeon Objects
+-- This module concentrates utility functions to facilitate the reading of Aeson Objects
 
 import qualified Data.Aeson                 as A
     -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
@@ -53,7 +53,7 @@ type Locationpath = String
         "contents"  : CAS-KEY(s)
     }
 
-    Structure of aeonObjects ( extracted using gaia-utils )
+    Structure of aesonObjects ( extracted using gaia-utils )
 
     Object (
         fromList [
@@ -98,15 +98,15 @@ type Locationpath = String
 -- Getting JSON Strings From Storage
 -- -----------------------------------------------------------
 
-getAeonJSONStringForCASHash :: String -> IO String
-getAeonJSONStringForCASHash hash = ContentAddressableStore.get hash
+getAesonJSONStringForCASHash :: String -> IO String
+getAesonJSONStringForCASHash hash = ContentAddressableStore.get hash
 
 -- -----------------------------------------------------------
--- Building Aeon Values
+-- Building Aeson Values
 -- -----------------------------------------------------------
 
-makeAeonJSONValueForFile :: String -> Integer -> Char8.ByteString -> A.Value
-makeAeonJSONValueForFile filename filesize filecontents =
+makeAesonJSONValueForFile :: String -> Integer -> Char8.ByteString -> A.Value
+makeAesonJSONValueForFile filename filesize filecontents =
     A.Object $ E.fromList [
         ("aion-type" , A.String "file"),
         ("version"   , A.Number 1),
@@ -114,26 +114,26 @@ makeAeonJSONValueForFile filename filesize filecontents =
         ("size"      , A.Number $ scientific filesize 1 ),
         ("hash"      , A.String $ T.pack $ SHA.showDigest $ SHA.sha1 filecontents) ]
 
-makeAeonJSONValueForDirectory :: String -> [A.Value] -> A.Value
-makeAeonJSONValueForDirectory foldername aeonvalues =
+makeAesonJSONValueForDirectory :: String -> [A.Value] -> A.Value
+makeAesonJSONValueForDirectory foldername aesonvalues =
     A.Object $ E.fromList [
             ("aion-type" , A.String "directory"),
             ("version"   , A.Number 1),
             ("name"      , A.String $ T.pack foldername),
-            ("contents"  , A.Array $ V.fromList aeonvalues ) ]
+            ("contents"  , A.Array $ V.fromList aesonvalues ) ]
 
 -- -----------------------------------------------------------
--- Aeon Values to JSON String (and Storage)
+-- Aeson Values to JSON String (and Storage)
 -- -----------------------------------------------------------
 
-aeonJSONVAlueToString :: A.Value -> String
-aeonJSONVAlueToString value = Char8.unpack $ A.encode value
+aesonJSONVAlueToString :: A.Value -> String
+aesonJSONVAlueToString value = Char8.unpack $ A.encode value
 
-commitAeonJSONValueToCAS :: A.Value -> IO String
-commitAeonJSONValueToCAS value = ContentAddressableStore.set $ aeonJSONVAlueToString value
+commitAesonJSONValueToCAS :: A.Value -> IO String
+commitAesonJSONValueToCAS value = ContentAddressableStore.set $ aesonJSONVAlueToString value
 
 -- -----------------------------------------------------------
---  JSON Strings to Aeon Values
+--  JSON Strings to Aeson Values
 -- -----------------------------------------------------------
 
 -- Prelude> import qualified Data.Aeson as A
@@ -145,8 +145,8 @@ commitAeonJSONValueToCAS value = ContentAddressableStore.set $ aeonJSONVAlueToSt
 -- Prelude A Char8 D> D.fromJust value
 -- Object (fromList [("name",String "Pascal")])
 
-convertJSONStringIntoAeonJSONObject :: String -> Maybe A.Value
-convertJSONStringIntoAeonJSONObject string =
+convertJSONStringIntoAesonJSONObject :: String -> Maybe A.Value
+convertJSONStringIntoAesonJSONObject string =
     let value1 = A.decode $ Char8.pack string
         value2 = if M.isJust value1
             then 
@@ -156,54 +156,54 @@ convertJSONStringIntoAeonJSONObject string =
     in value2
 
 -- -----------------------------------------------------------
--- Extracting Data from Aeon Value
+-- Extracting Data from Aeson Value
 -- -----------------------------------------------------------
 
-extractListOfPairsFromAeonValueObject :: A.Value -> Maybe [(T.Text ,A.Value)]
-extractListOfPairsFromAeonValueObject (A.Object x) = Just $ HM.toList x
-extractListOfPairsFromAeonValueObject _ = Nothing
+extractListOfPairsFromAesonValueObject :: A.Value -> Maybe [(T.Text ,A.Value)]
+extractListOfPairsFromAesonValueObject (A.Object x) = Just $ HM.toList x
+extractListOfPairsFromAesonValueObject _ = Nothing
 
-extractUnderlyingTextFromAeonValueString :: A.Value -> Maybe T.Text
-extractUnderlyingTextFromAeonValueString (A.String x) = Just x
-extractUnderlyingTextFromAeonValueString _ = Nothing
+extractUnderlyingTextFromAesonValueString :: A.Value -> Maybe T.Text
+extractUnderlyingTextFromAesonValueString (A.String x) = Just x
+extractUnderlyingTextFromAesonValueString _ = Nothing
 
-extractUnderlyingIntegerFromAeonValueNumber :: A.Value -> Maybe Integer
-extractUnderlyingIntegerFromAeonValueNumber (A.Number x) = Just $ S.coefficient x
-extractUnderlyingIntegerFromAeonValueNumber _ = Nothing
+extractUnderlyingIntegerFromAesonValueNumber :: A.Value -> Maybe Integer
+extractUnderlyingIntegerFromAesonValueNumber (A.Number x) = Just $ S.coefficient x
+extractUnderlyingIntegerFromAesonValueNumber _ = Nothing
 
-extractUnderlyingListOfStringsFromAeonValueVectorString :: A.Value -> Maybe [String]
-extractUnderlyingListOfStringsFromAeonValueVectorString (A.Array x) = Just $ map (\v -> (T.unpack . M.fromJust . extractUnderlyingTextFromAeonValueString) v ) ( V.toList x )
-extractUnderlyingListOfStringsFromAeonValueVectorString _ = Nothing
+extractUnderlyingListOfStringsFromAesonValueVectorString :: A.Value -> Maybe [String]
+extractUnderlyingListOfStringsFromAesonValueVectorString (A.Array x) = Just $ map (\v -> (T.unpack . M.fromJust . extractUnderlyingTextFromAesonValueString) v ) ( V.toList x )
+extractUnderlyingListOfStringsFromAesonValueVectorString _ = Nothing
 
-extractGaiaDataFromAeonValueForFile :: A.Value -> ( String, Integer, String ) -- ( filename, filesize, sha1-shah )
-extractGaiaDataFromAeonValueForFile aValue =
+aesonValueForFileGaiaProjection :: A.Value -> ( String, Integer, String ) -- ( filename, filesize, sha1-shah )
+aesonValueForFileGaiaProjection aValue =
     let
-        value1 = extractListOfPairsFromAeonValueObject aValue                     -- [(T.Text ,A.Value)]
+        value1 = extractListOfPairsFromAesonValueObject aValue                     -- [(T.Text ,A.Value)]
 
-        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )         -- AeonValueString
-        value3 = M.fromJust $ extractUnderlyingTextFromAeonValueString value2     -- Text
+        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )         -- AesonValueString
+        value3 = M.fromJust $ extractUnderlyingTextFromAesonValueString value2     -- Text
         filename = T.unpack value3                                                -- String
 
-        value4 = M.fromJust $ Prelude.lookup "size" ( M.fromJust value1 )         -- AeonValueNumber  
-        value5 = M.fromJust $ extractUnderlyingIntegerFromAeonValueNumber value4  -- Integer
+        value4 = M.fromJust $ Prelude.lookup "size" ( M.fromJust value1 )         -- AesonValueNumber  
+        value5 = M.fromJust $ extractUnderlyingIntegerFromAesonValueNumber value4  -- Integer
         filesize = value5
 
-        value6 = M.fromJust $ Prelude.lookup "hash" ( M.fromJust value1 )         -- AeonValueNumber  
-        value7 = M.fromJust $ extractUnderlyingTextFromAeonValueString value6     -- Integer
+        value6 = M.fromJust $ Prelude.lookup "hash" ( M.fromJust value1 )         -- AesonValueNumber  
+        value7 = M.fromJust $ extractUnderlyingTextFromAesonValueString value6     -- Integer
         hash = T.unpack value7
 
     in (filename,filesize,hash)
 
-extractGaiaDataFromAeonValueForDirectory :: A.Value -> ( String, [String] ) -- ( foldername, [CAS-Keys(s)] ) ( String, [String] )
-extractGaiaDataFromAeonValueForDirectory aValue =
+aesonValueForDirectoryGaiaProjection :: A.Value -> ( String, [String] ) -- ( foldername, [CAS-Keys(s)] ) ( String, [String] )
+aesonValueForDirectoryGaiaProjection aValue =
     let
-        value1 = extractListOfPairsFromAeonValueObject aValue
+        value1 = extractListOfPairsFromAesonValueObject aValue
         value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )
-        value3 = M.fromJust $ extractUnderlyingTextFromAeonValueString value2
+        value3 = M.fromJust $ extractUnderlyingTextFromAesonValueString value2
         foldername = T.unpack value3
 
-        value6 = M.fromJust $ Prelude.lookup "contents" ( M.fromJust value1 )                 -- AeonValueNumber  
-        value7 = M.fromJust $ extractUnderlyingListOfStringsFromAeonValueVectorString value6  -- [String]
+        value6 = M.fromJust $ Prelude.lookup "contents" ( M.fromJust value1 )                 -- AesonValueNumber  
+        value7 = M.fromJust $ extractUnderlyingListOfStringsFromAesonValueVectorString value6  -- [String]
         contents = value7
 
     in (foldername, contents)

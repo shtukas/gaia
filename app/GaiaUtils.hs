@@ -7,14 +7,14 @@ import System.Posix.User
 import qualified ScanningAndRecordingManager
 import qualified ContentAddressableStore
 import qualified Data.Maybe as M
-import qualified AeonObjectsUtils
+import qualified AesonObjectsUtils
 
 printHelp :: IO ()
 printHelp = do
     putStrLn "    usage: gaia-utils run-scan-at-default-location"
     putStrLn "    usage: gaia-utils get-merkle-root"
     putStrLn "    usage: gaia-utils cas-get <key>"
-    putStrLn "    usage: gaia-utils expose-aeon-object <key>"
+    putStrLn "    usage: gaia-utils expose-aeson-object <key>"
     putStrLn "    usage: gaia-utils run-query <pattern>"
 
 doTheThing1 :: [String] -> IO ()
@@ -39,7 +39,7 @@ doTheThing1 args
         string <- ContentAddressableStore.get key
         putStrLn string 
 
-    | ( (head args) == "expose-aeon-object" ) && ( length args >= 2 ) = do 
+    | ( (head args) == "expose-aeson-object" ) && ( length args >= 2 ) = do 
         let aion_cas_hash = ( head $ drop 1 args )
         aionJSONValueAsString <- ContentAddressableStore.get aion_cas_hash
         if ( length aionJSONValueAsString ) == 0
@@ -47,13 +47,13 @@ doTheThing1 args
                 putStrLn "I could not find a ContentAddressableStore record"  
             else    
                 do 
-                    let aionJSONValueMaybe = AeonObjectsUtils.convertJSONStringIntoAeonJSONObject aionJSONValueAsString
+                    let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject aionJSONValueAsString
                     if M.isJust aionJSONValueMaybe
                         then do 
                             let aionJSONValue = M.fromJust aionJSONValueMaybe
                             putStrLn $ show aionJSONValue
                         else
-                            putStrLn "I could not convert the record to a Aeon Object"  
+                            putStrLn "I could not convert the record to a Aeson Object"  
 
     | ( (head args) == "run-query" ) && ( length args >= 2 ) = do 
         let pattern = ( head $ drop 1 args )
@@ -81,7 +81,7 @@ main = do
 
 {-|
 
-    Extracted using expose-aeon-object
+    Extracted using expose-aeson-object
 
     Object (
         fromList [
