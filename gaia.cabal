@@ -19,6 +19,7 @@ library
                     -- below this line in alphabetical order
                      , AesonObjectsUtils
                      , ContentAddressableStore
+                     , FSRootsManagement
                      , Gaia.Directives
                      , Gaia.Types
                      , SearchEngine

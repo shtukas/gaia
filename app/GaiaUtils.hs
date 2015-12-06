@@ -9,6 +9,7 @@ import qualified ContentAddressableStore
 import qualified Data.Maybe as M
 import qualified AesonObjectsUtils
 import qualified SystemIntegrity
+import qualified FSRootsManagement
 
 printHelp :: IO ()
 printHelp = do
@@ -18,6 +19,9 @@ printHelp = do
     putStrLn "    usage: gaia-utils expose-aeson-object <key>"
     putStrLn "    usage: gaia-utils run-query <pattern>"
     putStrLn "    usage: gaia-utils fsck"
+    putStrLn "    usage: gaia-utils print-fs-roots"
+    putStrLn "    usage: gaia-utils add-fs-root <locationpath>"
+    putStrLn "    usage: gaia-utils remove-fs-root <locationpath>"
 
 doTheThing1 :: [String] -> IO ()
 doTheThing1 args
@@ -87,6 +91,17 @@ doTheThing1 args
                     else putStrLn "error: Aion Tree does not check out"
             else
                 putStrLn "error: I could not retrieve the Merkle root to run the scan"
+
+    | (head args) == "print-fs-roots" = do 
+        FSRootsManagement.printFSRootsListing
+
+    | ( (head args) == "add-fs-root" ) && ( length args >= 2 ) = do 
+        let fsroot = ( head $ drop 1 args )
+        FSRootsManagement.addFSRoot fsroot       
+
+    | ( (head args) == "remove-fs-root" ) && ( length args >= 2 ) = do 
+        let fsroot = ( head $ drop 1 args )
+        FSRootsManagement.removeFSRoot fsroot  
 
     | otherwise = do 
         putStrLn ""
