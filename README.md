@@ -28,7 +28,7 @@ merkle  : 167d207dd4a14bc619e723fd770d7c1f777f3ec3
 - `gaia-utils get-merkle-roots` shows the value of the current Merkle roots against each FS Scan Root.
 - `gaia-utils cas-get <key>` this is the `get` function of the Contents Adressable Store. Use it if you want to see the data stored against a key. (Mostly used to retrieve Aion JSON objects.) 
 - `gaia-utils expose-aeson-object <key>` shows the string representation of a Aeson object. The keys are the same keys you would use for Aion objects. 
-- `gaia-utils run-query <pattern>` runs a query against the Aion Tree(s). Returns a list of locationpaths.
+- `gaia-utils run-query <pattern>` runs a query against each FS Scan Root's Aion Tree. Returns a list of locationpaths. The results are aggregated per FS Scan Roots. 
 - `gaia-utils fsck` Gaia can misbehave if the Aion tree is corrupted, this command checks that the tree is complete.  
 
 We then have three commands to manage the list of FS Scan Roots. In this commit the scan runs at the default location, but soon the scan will run at all specified locations. The way to add, list and remove those locations is given by `gaia-utils`.
