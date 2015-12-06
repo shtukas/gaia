@@ -39,11 +39,6 @@ getMerkleRoot =
 
 -- -----------------------------------------------------------
 
-getAeonJSONStringForCASHash :: String -> IO String
-getAeonJSONStringForCASHash hash = ContentAddressableStore.get hash
-
--- -----------------------------------------------------------
-
 -- extractLocationpathsForAionJsonFileObjectAndQuery <aeonObjectFile> <search pattern> <current path>
 
 extractLocationpathsForAionJsonFileObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
@@ -107,7 +102,7 @@ extractLocationpathsForAionCASHashAndQuery :: String -> String -> String -> IO (
 extractLocationpathsForAionCASHashAndQuery _ "" _ = do
     return $ Just []
 extractLocationpathsForAionCASHashAndQuery aion_cas_hash pattern current_path = do
-    aionJSONValueAsString <- ContentAddressableStore.get aion_cas_hash
+    aionJSONValueAsString <- AeonObjectsUtils.getAeonJSONStringForCASHash aion_cas_hash
     let aionJSONValueMaybe = AeonObjectsUtils.convertJSONStringIntoAeonJSONObject aionJSONValueAsString
     if M.isJust aionJSONValueMaybe
         then do 

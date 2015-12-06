@@ -31,6 +31,8 @@ import qualified Data.Vector                as V
 
 import           Data.Scientific            as S
 
+import qualified ContentAddressableStore
+
 type Locationpath = String
 
 {-|
@@ -91,6 +93,13 @@ type Locationpath = String
         )
 
 -}
+
+-- -----------------------------------------------------------
+-- Getting JSON Strings From Storage
+-- -----------------------------------------------------------
+
+getAeonJSONStringForCASHash :: String -> IO String
+getAeonJSONStringForCASHash hash = ContentAddressableStore.get hash
 
 -- -----------------------------------------------------------
 -- Building Aeon Values
