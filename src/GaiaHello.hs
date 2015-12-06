@@ -4,4 +4,3 @@ module GaiaHello (
 
 hello :: IO ()
 hello = putStrLn "Hello World."
-

@@ -7,10 +7,10 @@ import qualified Data.ByteString.Lazy.Char8 as Char8
 import           Data.Digest.Pure.SHA       as SHA
 import qualified Data.Time.Clock.POSIX      as Time
 import qualified System.Directory           as Dir
-import           System.Environment         (getEnv)
 import           System.IO.Error            (catchIOError, ioError,
                                              isDoesNotExistError)
 import qualified Data.Maybe as M
+import qualified UserPreferences
 
 type Filepath = String
 type Folderpath = String
@@ -25,22 +25,11 @@ type Folderpath = String
 -- System.IO.Error
 --     catchIOError :: IO a -> (IOError -> IO a) -> IO a
 
--- TODO: get the _dataroot via config. Hardcoded for the moment.
-_dataroot :: Folderpath
-_dataroot = "/x-space/xcache-v2"
-
 getCurrentUnixTime :: IO Int
 getCurrentUnixTime = round `fmap` Time.getPOSIXTime
 
-getEnvFailback :: String -> String -> IO String
-getEnvFailback env failback =
-    catchIOError (getEnv env) (\e -> if isDoesNotExistError e then return failback else ioError e)
-
 getSha1Digest :: String -> String
 getSha1Digest string = SHA.showDigest $ SHA.sha1 $ Char8.pack string
-
-getXCacheRoot :: IO String
-getXCacheRoot = getEnvFailback "GAIAXCACHEROOT" _dataroot
 
 ensureFolderPath :: Folderpath -> IO ()
 ensureFolderPath = Dir.createDirectoryIfMissing True
@@ -59,7 +48,7 @@ keyToDataFolderPath key =
     let
         filename = keyToFilename key
         (fragment1, fragment2) = filenameToPathFragments filename
-    in  getXCacheRoot >>= \root ->
+    in  UserPreferences.getXCacheRoot >>= \root ->
         return $ root ++ "/datablobs/" ++ fragment1 ++ "/" ++ fragment2
 
 keyToTimestampFolderPath :: String -> IO Folderpath
@@ -67,7 +56,7 @@ keyToTimestampFolderPath key =
     let
         filename = keyToFilename key
         (fragment1, fragment2) = filenameToPathFragments filename
-    in  getXCacheRoot >>= \root ->
+    in  UserPreferences.getXCacheRoot >>= \root ->
         return $ root ++ "/timestamps/" ++ fragment1 ++ "/" ++ fragment2
 
 keyToDataFilePath :: String -> IO Filepath
