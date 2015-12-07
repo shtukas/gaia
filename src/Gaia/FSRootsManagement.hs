@@ -6,9 +6,9 @@ import           Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.List
 import qualified Data.Text
-import qualified Gaia.UserPreferences as UP
-import qualified PStorageServices.Xcache as X
-import           System.Directory as Dir
+import qualified Gaia.UserPreferences       as UP
+import qualified PStorageServices.Xcache    as X
+import           System.Directory           as Dir
 
 import           Gaia.Types
 
@@ -20,10 +20,8 @@ addFSRoot locationpath = do
     filepath <- UP.getFSRootsListingFilePath
     fileexists <- Dir.doesFileExist filepath
     if fileexists
-        then do
-            appendFile filepath (locationpath++ "\n")
-        else do
-            writeFile filepath (locationpath++ "\n")
+        then appendFile filepath (locationpath++ "\n")
+        else writeFile filepath (locationpath++ "\n")
     printFSRootsListing
 
 printFSRootsListing :: IO ()
@@ -47,11 +45,11 @@ removeFSRoot root = do
         then do
             oldcontents1 <- readFile filepath
 
-            -- The next three lines only exist to consume the entire file 
+            -- The next three lines only exist to consume the entire file
             -- Otherwise the lazy read keeps a lock and the writeFile fails
             putStrLn "-- old file ------------"
             putStr oldcontents1
-            
+
             let oldcontents2 = Data.List.lines oldcontents1
             let oldcontents3 = filter (\line -> (Data.Text.strip $ Data.Text.pack line)/=(Data.Text.pack root )) oldcontents2
             let oldcontents4 = Data.List.unlines oldcontents3
@@ -73,12 +71,10 @@ getFSScanRoots = do
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
-            contents1 <- readFile filepath
-            let contents2 = Data.List.lines contents1
-            let contents3 = filter (\line -> (length line)>0 ) contents2
-            return contents3
-        else do
-            return []
+            contents <- readFile filepath
+            let contents' = Data.List.lines contents
+            return $ filter (not.null) contents'
+        else return mempty
 
 -- --------------------------------------------------------------------------
 -- Mapping FS Roots to Xcache Keys
@@ -91,7 +87,7 @@ xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath = "f9c43482-2ae6-
 merkleRootForFSRootScan :: LocationPath -> MaybeT IO String
 merkleRootForFSRootScan locationpath = do
     let xcachekey = xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath
-    merkleroot <- MaybeT $ X.get xcachekey 
+    merkleroot <- MaybeT $ X.get xcachekey
     return $ Char8.unpack merkleroot
 
 

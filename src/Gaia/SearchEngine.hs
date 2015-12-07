@@ -22,8 +22,8 @@ import qualified System.FilePath                          as FS
 -- -----------------------------------------------------------
 
 {-
-    In the first section we implement the selection process. 
-    Currently we 
+    In the first section we implement the selection process.
+    Currently we
         - search for occurences of substrings in location paths
         - process tags in gaia files
 -}
@@ -33,12 +33,12 @@ import qualified System.FilePath                          as FS
 shouldRetainThisLocationPath :: LocationPath -> String -> Bool
 shouldRetainThisLocationPath locationpath pattern = pattern `D.isInfixOf` locationpath
 
--- *AesonObjectsUtils> Gaia.Directives.parseDirectivesFile "/Users/pascal/Desktop/Gifs/gaia" 
+-- *AesonObjectsUtils> Gaia.Directives.parseDirectivesFile "/Users/pascal/Desktop/Gifs/gaia"
 -- Right [Tag -> "Use the force, Luke"]
 
 shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath -> String -> [GD.GaiaFileDirective] -> Bool
-shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives _ pattern parsedirectives = 
-    any (\directive -> 
+shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives _ pattern parsedirectives =
+    any (\directive ->
             case directive of
                GaiaFileDirective GaiaFileTag body -> ( GU.stringToLower pattern ) `D.isInfixOf` ( GU.stringToLower body )
         ) parsedirectives
@@ -64,7 +64,7 @@ casKeyToAionName key = do
     where
         returnAppropriateName :: Maybe A.Value -> MaybeT IO String
         returnAppropriateName Nothing = mzero
-        returnAppropriateName (Just aesonValue) = 
+        returnAppropriateName (Just aesonValue) =
             if GAOU.aesonValueIsFile aesonValue
             then do
                 let (filename,_,_) = GAOU.aesonValueForFileGaiaProjection aesonValue
@@ -78,11 +78,11 @@ casKeyToAionName key = do
 -- extractLocationPathsForAesonValueFileAndPatternAndLocationPath <aesonObjectFile> <search pattern> <current path>
 
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> MaybeT IO [ LocationPath ]
-extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile pattern locationpath = 
+extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile pattern locationpath =
     do
         let aValue = aesonObjectFile
         let (filename,_,_) = GAOU.aesonValueForFileGaiaProjection aValue
-        if filename=="gaia" 
+        if filename=="gaia"
             then do
                 -- parseDirectivesFile :: FilePath -> MaybeT IO [Directive]
                 directives <- GD.parseDirectivesFile locationpath
@@ -93,7 +93,7 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile p
                         mzero
             else
                 if shouldRetainThisLocationInVirtueOfTheName filename pattern
-                    then 
+                    then
                         return [ locationpath ]
                     else
                         mzero
@@ -124,12 +124,10 @@ extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObjectD
 -- -----------------------------------------------------------
 
 extractLocationPathsForAesonValueAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> MaybeT IO [ LocationPath ]
-extractLocationPathsForAesonValueAndPatternAndLocationPath aesonObject pattern locationpath = 
+extractLocationPathsForAesonValueAndPatternAndLocationPath aesonObject pattern locationpath =
     if GAOU.aesonValueIsFile aesonObject
-        then do
-            extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObject pattern locationpath
-        else do
-            extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObject pattern locationpath
+        then extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObject pattern locationpath
+        else extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObject pattern locationpath
 
 -- -----------------------------------------------------------
 
@@ -148,6 +146,6 @@ extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern
 -- -----------------------------------------------------------
 
 runQueryAgainMerkleRootUsingStoredData :: LocationPath -> String -> String -> MaybeT IO [ LocationPath ]
-runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern = do
+runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern =
     extractLocationPathsForAionCASKeyAndPatternAndLocationPath merkleroot pattern fsroot
 

@@ -10,14 +10,14 @@ module Gaia.Directives(
 import           Control.Monad
 import           Control.Monad.Trans.Maybe
 import           Gaia.Types
-import           Text.Parsec            (alphaNum, char, many, newline, parse,
-                                         try, (<|>))
+import           Text.Parsec               (alphaNum, char, many, newline,
+                                            parse, try, (<|>))
 --  parse :: Parser a -> SourceName -> String -> Either ParseError a
 --  I leave it here in case we decide to go back to Error messages and EitherT
-import           Text.Parsec.Char       (anyChar, string)
-import           Text.Parsec.Combinator (many1, manyTill)
-import           Text.Parsec.Error      (ParseError)
-import           Text.Parsec.String     (Parser, parseFromFile)
+import           Text.Parsec.Char          (anyChar, string)
+import           Text.Parsec.Combinator    (many1, manyTill)
+import           Text.Parsec.Error         (ParseError)
+import           Text.Parsec.String        (Parser, parseFromFile)
 
 -- NOTES
 -- - to print UTF-8 character we cannot use putStr but instead we
@@ -74,15 +74,11 @@ parseDirectives :: String -> Maybe [GaiaFileDirective]
 parseDirectives str = hush (parse directives "" str)
 
 parseDirectivesFile :: FilePath -> MaybeT IO [GaiaFileDirective]
-parseDirectivesFile filepath = do
-    directs <- MaybeT $ liftM hush eitherDirectives
-    return directs
+parseDirectivesFile filepath = MaybeT $ liftM hush eitherDirectives
     where
         eitherDirectives = parseFromFile directives filepath
 
 checkDirectivesFile :: FilePath -> MaybeT IO ParseError
-checkDirectivesFile filepath = do
-  errors <- MaybeT $ liftM hsuh eitherDirectives
-  return errors 
-  where 
-    eitherDirectives = (parseFromFile directives filepath)
+checkDirectivesFile filepath = MaybeT $ liftM hsuh eitherDirectives
+    where
+        eitherDirectives = parseFromFile directives filepath

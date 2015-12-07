@@ -105,7 +105,7 @@ computeMerkleRootForLocationRecursivelyComputedaAndStored locationpath = do
             return Nothing
 
 commitMerkleRootForFSScanRoot :: String -> String -> IO ()
-commitMerkleRootForFSScanRoot fsscanlocationpath merkleroot = do
+commitMerkleRootForFSScanRoot fsscanlocationpath merkleroot =
     X.set (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan fsscanlocationpath) ( Char8.pack merkleroot )
 
 getCurrentMerkleRootForFSScanRoot :: String -> MaybeT IO String

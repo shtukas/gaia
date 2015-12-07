@@ -6,17 +6,17 @@ module Gaia.AesonObjectsUtils where
 -- This module concentrates utility functions to facilitate the reading of Aeson Objects
 
 import           Control.Monad.Trans.Maybe
-import qualified Data.Aeson as A
+import qualified Data.Aeson                               as A
     -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
-import qualified Data.ByteString.Lazy.Char8 as Char8
-import qualified Data.Digest.Pure.SHA as SHA
+import qualified Data.ByteString.Lazy.Char8               as Char8
+import qualified Data.Digest.Pure.SHA                     as SHA
     -- SHA.sha1 :: Char8.ByteString -> Digest SHA1State
     -- SHA.showDigest :: Digest t -> String
-import qualified Data.HashMap.Strict as HM
-import qualified Data.Scientific as S
-import qualified Data.Text as T
-import qualified Data.Vector as V
-import qualified GHC.Exts as E
+import qualified Data.HashMap.Strict                      as HM
+import qualified Data.Scientific                          as S
+import qualified Data.Text                                as T
+import qualified Data.Vector                              as V
+import qualified GHC.Exts                                 as E
     -- support for the JSON library
 import qualified PStorageServices.ContentAddressableStore as CAS
 
@@ -73,9 +73,9 @@ import           Gaia.Types
     an object is a HashMap
     an array is a Vector
     a string is a Text
-    a number is Scientific 
+    a number is Scientific
         (
-            because JSON doesn't specify precision and so a 
+            because JSON doesn't specify precision and so a
             type which allows arbitrary precision is used
         )
 
@@ -143,9 +143,9 @@ convertJSONStringIntoAesonValue string = A.decode $ Char8.pack string
 
 aesonValueIsFile :: A.Value -> Bool
 aesonValueIsFile aesonValue =
-    let 
+    let
         value1 = extractListOfPairsFromAesonValue aesonValue []
-        answer = case lookup "aion-type" value1 of 
+        answer = case lookup "aion-type" value1 of
             Nothing     -> False
             Just value3 -> ( extractUnderlyingTextFromAesonValueString value3 "" )=="file"
     in
@@ -161,10 +161,12 @@ extractUnderlyingTextFromAesonValueString _ defaultvalue = T.pack defaultvalue
 
 extractUnderlyingIntegerFromAesonValueNumber :: A.Value -> Integer -> Integer
 extractUnderlyingIntegerFromAesonValueNumber (A.Number x) _ = S.coefficient x
-extractUnderlyingIntegerFromAesonValueNumber _ defaultvalue = defaultvalue 
+extractUnderlyingIntegerFromAesonValueNumber _ defaultvalue = defaultvalue
 
 extractUnderlyingListOfStringsFromAesonValueVectorString :: A.Value -> [String] -> [String]
-extractUnderlyingListOfStringsFromAesonValueVectorString (A.Array x) _ = map (\v -> (T.unpack $ extractUnderlyingTextFromAesonValueString v "" ) ) ( V.toList x )
+extractUnderlyingListOfStringsFromAesonValueVectorString (A.Array x) _ =
+    map (\v -> T.unpack $ extractUnderlyingTextFromAesonValueString v "" )
+        ( V.toList x )
 extractUnderlyingListOfStringsFromAesonValueVectorString _ defaultvalue = defaultvalue
 
 aesonValueForFileGaiaProjection :: A.Value -> ( String, Integer, String ) -- ( filename, filesize, sha1-shah )
@@ -172,9 +174,9 @@ aesonValueForFileGaiaProjection aValue =
     let
         value1 = extractListOfPairsFromAesonValue aValue [] -- [(T.Text ,A.Value)]
 
-        filename = 
+        filename =
             case lookup "name" value1 of
-                Nothing -> "" 
+                Nothing -> ""
                 Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
 
         filesize =
@@ -182,8 +184,8 @@ aesonValueForFileGaiaProjection aValue =
                 Nothing -> 0
                 Just s1 -> extractUnderlyingIntegerFromAesonValueNumber s1 0
 
-        hash = 
-            case lookup "hash" value1 of 
+        hash =
+            case lookup "hash" value1 of
                 Nothing -> ""
                 Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""
 
@@ -194,12 +196,12 @@ aesonValueForDirectoryGaiaProjection aValue =
     let
         value1 = extractListOfPairsFromAesonValue aValue []
 
-        foldername = 
+        foldername =
             case lookup "name" value1 of
-                Nothing -> "" 
-                Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 "" 
+                Nothing -> ""
+                Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
 
-        contents = 
+        contents =
             case lookup "contents" value1 of
                 Nothing -> []
                 Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
@@ -207,18 +209,18 @@ aesonValueForDirectoryGaiaProjection aValue =
     in (foldername, contents)
 
 -- -----------------------------------------------------------------------------
--- Because manipulating Aeson values in a little bit painful we are going to use 
+-- Because manipulating Aeson values in a little bit painful we are going to use
 -- the datatypes we defined
 
 aesonValueToTAionPoint :: A.Value -> TAionPoint
-aesonValueToTAionPoint aesonvalue  
-    | aesonValueIsFile aesonvalue = 
-        let 
+aesonValueToTAionPoint aesonvalue
+    | aesonValueIsFile aesonvalue =
+        let
             value1 = extractListOfPairsFromAesonValue aesonvalue [] -- [(T.Text ,A.Value)]
 
-            filename = 
+            filename =
                 case Prelude.lookup "name" value1 of
-                    Nothing -> "" 
+                    Nothing -> ""
                     Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
 
             filesize =
@@ -226,27 +228,27 @@ aesonValueToTAionPoint aesonvalue
                     Nothing -> 0
                     Just s1 -> extractUnderlyingIntegerFromAesonValueNumber s1 0
 
-            hash = 
-                case Prelude.lookup "hash" value1 of 
+            hash =
+                case Prelude.lookup "hash" value1 of
                     Nothing -> ""
-                    Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""            
+                    Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""
 
         in TAionPointFile filename filesize hash
-    | otherwise = 
+    | otherwise =
         -- Here we make a leap of faith that if it's not a file it's a directory
-        -- TODO: understand if is worth to move it to Either or Maybe with a 
+        -- TODO: understand if is worth to move it to Either or Maybe with a
         --       check isDirectory or simply brutally panic if not a directory :P
         let
             value1 = extractListOfPairsFromAesonValue aesonvalue []
 
-            foldername = 
+            foldername =
                 case Prelude.lookup "name" value1 of
-                    Nothing -> "" 
-                    Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 "" 
+                    Nothing -> ""
+                    Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
 
-            contents = 
+            contents =
                 case Prelude.lookup "contents" value1 of
                     Nothing -> []
-                    Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []            
+                    Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
         in TAionPointDirectory foldername contents
 
