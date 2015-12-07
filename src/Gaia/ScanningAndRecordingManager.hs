@@ -34,8 +34,7 @@ import qualified PStorageServices.Xcache as X
 
 import qualified Data.Maybe as M
 
-type FolderPath = String
-type LocationPath = String
+import           Gaia.Types
 
 -- ---------------------------------------------------------------
 

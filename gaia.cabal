@@ -21,7 +21,6 @@ library
                        Gaia.AesonObjectsUtils
                      , Gaia.Directives
                      , Gaia.FSRootsManagement
-                     , Gaia.GenericTypes
                      , Gaia.ScanningAndRecordingManager
                      , Gaia.SearchEngine
                      , Gaia.SystemIntegrity
@@ -29,6 +28,7 @@ library
                      , Gaia.UserPreferences
                      , PStorageServices.ContentAddressableStore
                      , PStorageServices.Xcache
+                     , PStorageServices.Types
   build-depends:       base >= 4.7 && < 5
                     -- below this line in alphabetical order
                      , aeson

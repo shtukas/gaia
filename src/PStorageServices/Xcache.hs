@@ -11,7 +11,7 @@ import qualified Data.Maybe as M
 import qualified Gaia.UserPreferences as UP
 import qualified System.FilePath as FS
 
-type FolderPath = String
+import           PStorageServices.Types
 
 -- Data.Digest.Pure.SHA
 --     sha1 :: Data.ByteString.Lazy.Internal.ByteString -> Digest SHA1State

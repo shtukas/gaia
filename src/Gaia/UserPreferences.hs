@@ -5,7 +5,7 @@ import           System.Environment (getEnv)
 import           System.IO.Error (catchIOError, ioError, isDoesNotExistError)
 import qualified System.FilePath as FS
 
-type FolderPath = String
+import           Gaia.Types
 
 xcacheRepositoryLegacyFolderPath :: FolderPath
 xcacheRepositoryLegacyFolderPath = "/x-space/xcache-v2"
