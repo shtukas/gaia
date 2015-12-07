@@ -66,7 +66,7 @@ filepathToAesonJSONValue :: FilePath -> IO A.Value
 filepathToAesonJSONValue filepath = do
     filesize <- getFileSize filepath
     filecontents <- getFileContents filepath
-    return $ GAOU.makeAesonValueForFile ( getLocationName filepath ) ( fromIntegral filesize ) filecontents
+    return $ GAOU.makeAesonValueForFileUsingFileContents ( getLocationName filepath ) ( fromIntegral filesize ) filecontents
 
 --{
 --	"aion-type" : "directory"
@@ -82,7 +82,7 @@ folderpathToAesonJSONValue folderpath = do
                         (excludeDotFolders directoryContents)
     caskeys <- mapM GAOU.commitAesonValueToCAS aesonvalues
     let aesonvalues2 = map (A.String . T.pack) caskeys
-    return $ GAOU.makeAesonValueForDirectory (getLocationName folderpath) aesonvalues2
+    return $ GAOU.makeAesonValueForDirectoryUsingContentsAesonValues (getLocationName folderpath) aesonvalues2
 
 -- ---------------------------------------------------------------
 

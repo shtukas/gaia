@@ -2,40 +2,22 @@ module Gaia.SystemIntegrity where
 
 import qualified Data.Aeson as A
 import qualified Gaia.AesonObjectsUtils as GAOU
+import           Gaia.Types
 
 -- This function checks the Aion Tree below a CAS Key
 aionTreeFsckCASKey :: String -> IO Bool
 aionTreeFsckCASKey caskey = do
-    string' <- GAOU.getAesonJSONStringForCASKey caskey
+    string' <- GAOU.getAionJSONStringForCASKey caskey
     case string' of 
         Nothing     -> return False
         Just string -> do
-            let aesonValue' = GAOU.convertJSONStringIntoAesonValue string
-            case aesonValue' of
-                Nothing         -> return False
-                Just aesonValue -> aionTreeFsckAesonValue aesonValue
-            
-
--- This function checks the Aion Tree below a Aeson Value
-aionTreeFsckAesonValue :: A.Value -> IO Bool
-aionTreeFsckAesonValue aesonValue = do
-    if GAOU.aesonValueIsFile aesonValue
-        then do
-            let gaiaProjection = GAOU.aesonValueForFileGaiaProjection aesonValue
-            aionTreeFsckFileGaiaProjection gaiaProjection
-        else do 
-            let gaiaProjection = GAOU.aesonValueForDirectoryGaiaProjection aesonValue
-            aionTreeFsckDirectoryGaiaProjection gaiaProjection
-
--- This function checks the Aion tree below a file trace
-aionTreeFsckFileGaiaProjection :: ( String, Integer, String ) -> IO Bool -- ( filename, filesize, sha1-shah ) -> IO Bool
-aionTreeFsckFileGaiaProjection gaiaProjection = do
-    return True
-
--- This function checks the Aion tree below 
-aionTreeFsckDirectoryGaiaProjection :: ( String, [String] ) -> IO Bool -- ( String, [String] ) -> IO Bool
-aionTreeFsckDirectoryGaiaProjection gaiaProjection = do
-    let caskeys = snd gaiaProjection
-    bools <- mapM aionTreeFsckCASKey caskeys -- [ IO Bool ] ~mapM~> IO [Bool] ~> [Bool]
-    return $ and bools
-    
+            let aesonValue = GAOU.convertJSONStringIntoAesonValue string
+            case aesonValue of
+                Nothing          -> return False
+                Just aesonValue' -> do
+                    let tap = GAOU.aesonValueToTAionPoint aesonValue'
+                    case tap of 
+                        TAionPointFile filename1 filesize1 hash1  -> return True
+                        TAionPointDirectory foldername2 contents2 -> do
+                            list <- sequence $ map ( \hash -> aionTreeFsckCASKey hash ) contents2
+                            return $ and list

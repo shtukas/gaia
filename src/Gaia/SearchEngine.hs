@@ -64,25 +64,24 @@ casKeyToAionName key = do
             let aesonValue = GAOU.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString)
             case aesonValue of
                 Nothing          -> return Nothing 
-                Just aesonValue' -> 
+                Just aesonValue' -> do
                     if GAOU.aesonValueIsFile aesonValue'
                         then do
-                            let (filename,_,_) = GAOU.aesonValueForFileGaiaProjection aesonValue'
-                            return $ Just filename
+                            let tap = GAOU.aesonValueToTAionPoint aesonValue'
+                            return $ Just ( name1 tap )
                         else do
-                            let (foldername,_) = GAOU.aesonValueForDirectoryGaiaProjection aesonValue'
-                            return $ Just foldername
+                            let tap = GAOU.aesonValueToTAionPoint aesonValue'
+                            return $ Just ( name1 tap )
 
 -- -----------------------------------------------------------
 
--- extractLocationPathsForAesonValueFileAndPatternAndLocationPath <aesonObjectFile> <search pattern> <current path>
+-- extractLocationPathsForAesonValueFileAndPatternAndLocationPath <aesonValueFile> <search pattern> <current path>
 
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO ( Maybe [ LocationPath ] )
-extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile pattern locationpath = 
+extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pattern locationpath = 
     do
-        let aValue = aesonObjectFile
-        let (filename,_,_) = GAOU.aesonValueForFileGaiaProjection aValue
-        if filename=="gaia" 
+        let tap = GAOU.aesonValueToTAionPoint aesonValueFile
+        if (name1 tap)=="gaia"
             then do
                 -- parseDirectivesFile :: FilePath -> IO (Either ParseError [Directive])
                 epd <- GD.parseDirectivesFile locationpath
@@ -97,7 +96,7 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile p
                         else
                             return $ Just []
             else
-                if shouldRetainThisLocationInVirtueOfTheName filename pattern
+                if shouldRetainThisLocationInVirtueOfTheName (name1 tap) pattern
                     then 
                         return $ Just [locationpath]
                     else
@@ -105,14 +104,14 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile p
 
 -- -----------------------------------------------------------
 
--- extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath <aesonObjectDirectory> <search pattern> <current path>
+-- extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath <aesonValueDirectory> <search pattern> <current path>
 
 extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO ( Maybe [ LocationPath ] )
-extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObjectDirectory pattern locationpath = 
-        let (foldername, caskeys) = GAOU.aesonValueForDirectoryGaiaProjection aesonObjectDirectory
-        -- ( foldername, [CAS-Keys(s)] )
-        -- ( String, [String] )
-    in do
+extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonValueDirectory pattern locationpath = 
+    do 
+        let tap = GAOU.aesonValueToTAionPoint aesonValueDirectory
+        let foldername = ( name2 tap )
+        let caskeys = ( contents2 tap )
         arrays <- mapM (\caskey -> do
                                     name' <- casKeyToAionName caskey
                                     case name' of
@@ -150,7 +149,7 @@ extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -
 extractLocationPathsForAionCASKeyAndPatternAndLocationPath _ "" _ = do
     return $ Just []
 extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern locationpath = do
-    aionJSONValueAsString' <- GAOU.getAesonJSONStringForCASKey aion_cas_hash
+    aionJSONValueAsString' <- GAOU.getAionJSONStringForCASKey aion_cas_hash
     case aionJSONValueAsString' of
         Nothing                    -> return Nothing
         Just aionJSONValueAsString -> do
