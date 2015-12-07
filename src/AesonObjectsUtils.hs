@@ -148,14 +148,7 @@ commitAesonValueToCAS value = ContentAddressableStore.set $ Char8.pack $ aesonVA
 -- Object (fromList [("name",String "Pascal")])
 
 convertJSONStringIntoAesonValue :: String -> Maybe A.Value
-convertJSONStringIntoAesonValue string =
-    let value1 = A.decode $ Char8.pack string
-        value2 = if M.isJust value1
-            then 
-                value1
-            else 
-                Nothing
-    in value2
+convertJSONStringIntoAesonValue string = A.decode $ Char8.pack string
 
 -- -----------------------------------------------------------
 -- Extracting Data from Aeson Value
