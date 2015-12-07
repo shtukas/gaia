@@ -16,7 +16,23 @@ import qualified ContentAddressableStore
 
 import qualified AesonObjectsUtils
 
+import qualified Data.List as D
+
+import qualified Data.Char as C
+
 type Locationpath = String
+
+-- -----------------------------------------------------------
+
+{-
+    In the first section we implement the selection process. 
+    Currently we search for occurences of substrings in location paths
+-}
+
+-- -----------------------------------------------------------
+
+shouldRetainThisLocationPath :: Locationpath -> String -> Bool
+shouldRetainThisLocationPath locationpath pattern = D.isInfixOf pattern locationpath
 
 -- -----------------------------------------------------------
 
@@ -44,7 +60,7 @@ casKeyToAionName key = do
 
 -- extractLocationpathsForAesonValueFileAndPatternAndLocationpath <aesonObjectFile> <search pattern> <current path>
 
-extractLocationpathsForAesonValueFileAndPatternAndLocationpath :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAesonValueFileAndPatternAndLocationpath :: A.Value -> String -> Locationpath -> IO ( Maybe [ Locationpath ] )
 extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObjectFile pattern locationpath = 
     do
         let aValue = aesonObjectFile
@@ -55,7 +71,7 @@ extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObjectFile p
 
 -- extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath <aesonObjectDirectory> <search pattern> <current path>
 
-extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath :: A.Value -> String -> Locationpath -> IO ( Maybe [ Locationpath ] )
 extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectDirectory pattern locationpath = 
     do
         let aValue = aesonObjectDirectory
@@ -82,11 +98,15 @@ extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectD
 
         let array5 = concat array4
 
-        return $ Just ( [locationpath] ++ array5 )
+        let array6 = [locationpath] ++ array5
+
+        let array7 = filter ( \l -> shouldRetainThisLocationPath ( map (\c -> C.toLower c) l ) ( map (\c -> C.toLower c) pattern ) ) array6
+
+        return $ Just array7
 
 -- -----------------------------------------------------------
 
-extractLocationpathsForAesonValueAndPatternAndLocationpath :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAesonValueAndPatternAndLocationpath :: A.Value -> String -> Locationpath -> IO ( Maybe [ Locationpath ] )
 extractLocationpathsForAesonValueAndPatternAndLocationpath aesonObject pattern locationpath = 
     if AesonObjectsUtils.aesonValueIsFile aesonObject
         then do
@@ -98,7 +118,7 @@ extractLocationpathsForAesonValueAndPatternAndLocationpath aesonObject pattern l
 
 -- extractLocationpathsForAionCASKeyAndPatternAndLocationpath <aion cas hash> <search pattern> <current path>
 
-extractLocationpathsForAionCASKeyAndPatternAndLocationpath :: String -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAionCASKeyAndPatternAndLocationpath :: String -> String -> Locationpath -> IO ( Maybe [ Locationpath ] )
 extractLocationpathsForAionCASKeyAndPatternAndLocationpath _ "" _ = do
     return $ Just []
 extractLocationpathsForAionCASKeyAndPatternAndLocationpath aion_cas_hash pattern locationpath = do
@@ -117,7 +137,7 @@ extractLocationpathsForAionCASKeyAndPatternAndLocationpath aion_cas_hash pattern
 
 -- -----------------------------------------------------------
 
-runQueryAgainMerkleRootUsingStoredData :: String -> String -> String -> IO ( Maybe [ Locationpath ] )
+runQueryAgainMerkleRootUsingStoredData :: Locationpath -> String -> String -> IO ( Maybe [ Locationpath ] )
 runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern = do
     extractLocationpathsForAionCASKeyAndPatternAndLocationpath merkleroot pattern fsroot
 

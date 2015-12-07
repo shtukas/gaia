@@ -49,6 +49,13 @@ The list of FS Scan Roots, can be found in the file `~/.gaia/FSRootsListing.txt`
 
 To run the web server do `stack exec gaia-web` (this command must be ran at the root of the source code, because the code assume that the folder "web-root" is a child of the current directory). Currently primitive, but works. In this commit queries are not yet submitted to backend, instead are echoed to the page.
 
+## What does the search do ?
+
+The search is currently done by `gaia-utils run-query <pattern>`. In this commit it simply returns location paths that have the pattern as substring of a foldername or filename. 
+
+More to come in next commits...
+
+
 ## Todo
 - **In progress**: Allow users to specify the location of their Xcache repository. (Currently hardcoded to use the existing one on Pascal's computer.)
 - **Done**: To be able to scan more than one location. 
