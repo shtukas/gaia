@@ -195,12 +195,12 @@ extractLocationpathsForAionCASKeyAndPatternAndLocationpath _ "" _ = do
 extractLocationpathsForAionCASKeyAndPatternAndLocationpath aion_cas_hash pattern locationpath = do
     aionJSONValueAsString' <- AesonObjectsUtils.getAesonJSONStringForCASKey aion_cas_hash
     case aionJSONValueAsString' of
-    	Nothing                    -> return Nothing
-    	Just aionJSONValueAsString -> do
+        Nothing                    -> return Nothing
+        Just aionJSONValueAsString -> do
             let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue aionJSONValueAsString
             case aionJSONValueMaybe of
-            	Nothing                 -> return Nothing 
-            	Just aionJSONValue -> do  
+                Nothing                 -> return Nothing 
+                Just aionJSONValue -> do  
                     extractLocationpathsForAesonValueAndPatternAndLocationpath aionJSONValue pattern locationpath
 
 -- -----------------------------------------------------------

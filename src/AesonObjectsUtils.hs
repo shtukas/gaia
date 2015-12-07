@@ -98,10 +98,10 @@ type Locationpath = String
 
 getAesonJSONStringForCASKey :: String -> IO ( Maybe String )
 getAesonJSONStringForCASKey hash = do
-	value <- ContentAddressableStore.get hash
-	case value of 
-		Nothing     -> return Nothing
-		Just string -> return $ Just ( Char8.unpack string )
+    value <- ContentAddressableStore.get hash
+    case value of 
+        Nothing     -> return Nothing
+        Just string -> return $ Just ( Char8.unpack string )
 
 -- -----------------------------------------------------------
 -- Building Aeson Values
@@ -164,59 +164,64 @@ convertJSONStringIntoAesonValue string =
 aesonValueIsFile :: A.Value -> Bool
 aesonValueIsFile aesonValue =
     let 
-        value1 = extractListOfPairsFromAesonValue aesonValue
-        value2 = Prelude.lookup "aion-type" ( M.fromJust value1 ) -- TODO: The obvious thing....
-        value3 = M.fromJust value2 -- TODO: The obvious thing....
-        value4 = extractUnderlyingTextFromAesonValueString value3
-        value5 = M.fromJust value4 -- TODO: The obvious thing....
+        value1 = extractListOfPairsFromAesonValue aesonValue []
+        answer = case Prelude.lookup "aion-type" value1 of 
+            Nothing     -> False
+            Just value3 -> ( extractUnderlyingTextFromAesonValueString value3 "" )=="file"
     in
-        value5=="file"    
+        answer
 
-extractListOfPairsFromAesonValue :: A.Value -> Maybe [(T.Text ,A.Value)]
-extractListOfPairsFromAesonValue (A.Object x) = Just $ HM.toList x
-extractListOfPairsFromAesonValue _ = Nothing
+extractListOfPairsFromAesonValue :: A.Value -> [(T.Text ,A.Value)] -> [(T.Text ,A.Value)]
+extractListOfPairsFromAesonValue (A.Object x) defaultvalue = HM.toList x
+extractListOfPairsFromAesonValue _ defaultvalue = defaultvalue
 
-extractUnderlyingTextFromAesonValueString :: A.Value -> Maybe T.Text
-extractUnderlyingTextFromAesonValueString (A.String x) = Just x
-extractUnderlyingTextFromAesonValueString _ = Nothing
+extractUnderlyingTextFromAesonValueString :: A.Value -> String -> T.Text
+extractUnderlyingTextFromAesonValueString (A.String x) defaultvalue = x
+extractUnderlyingTextFromAesonValueString _ defaultvalue = T.pack defaultvalue
 
-extractUnderlyingIntegerFromAesonValueNumber :: A.Value -> Maybe Integer
-extractUnderlyingIntegerFromAesonValueNumber (A.Number x) = Just $ S.coefficient x
-extractUnderlyingIntegerFromAesonValueNumber _ = Nothing
+extractUnderlyingIntegerFromAesonValueNumber :: A.Value -> Integer -> Integer
+extractUnderlyingIntegerFromAesonValueNumber (A.Number x) defaultvalue = S.coefficient x
+extractUnderlyingIntegerFromAesonValueNumber _ defaultvalue = defaultvalue 
 
-extractUnderlyingListOfStringsFromAesonValueVectorString :: A.Value -> Maybe [String]
-extractUnderlyingListOfStringsFromAesonValueVectorString (A.Array x) = Just $ map (\v -> (T.unpack . M.fromJust . extractUnderlyingTextFromAesonValueString) v ) ( V.toList x )
-extractUnderlyingListOfStringsFromAesonValueVectorString _ = Nothing
+extractUnderlyingListOfStringsFromAesonValueVectorString :: A.Value -> [String] -> [String]
+extractUnderlyingListOfStringsFromAesonValueVectorString (A.Array x) defaultvalue = map (\v -> (T.unpack $ extractUnderlyingTextFromAesonValueString v "" ) ) ( V.toList x )
+extractUnderlyingListOfStringsFromAesonValueVectorString _ defaultvalue = defaultvalue
 
 aesonValueForFileGaiaProjection :: A.Value -> ( String, Integer, String ) -- ( filename, filesize, sha1-shah )
 aesonValueForFileGaiaProjection aValue =
     let
-        value1 = extractListOfPairsFromAesonValue aValue                          -- [(T.Text ,A.Value)]
+        value1 = extractListOfPairsFromAesonValue aValue [] -- [(T.Text ,A.Value)]
 
-        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )         -- AesonValueString -- TODO: The obvious thing....
-        value3 = M.fromJust $ extractUnderlyingTextFromAesonValueString value2    -- Text
-        filename = T.unpack value3                                                -- String
+        filename = 
+            case Prelude.lookup "name" value1 of
+                Nothing -> "" 
+                Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
 
-        value4 = M.fromJust $ Prelude.lookup "size" ( M.fromJust value1 )         -- AesonValueNumber -- TODO: The obvious thing.... 
-        value5 = M.fromJust $ extractUnderlyingIntegerFromAesonValueNumber value4 -- Integer
-        filesize = value5
+        filesize =
+            case Prelude.lookup "size" value1 of
+                Nothing -> 0
+                Just s1 -> extractUnderlyingIntegerFromAesonValueNumber s1 0
 
-        value6 = M.fromJust $ Prelude.lookup "hash" ( M.fromJust value1 )         -- AesonValueNumber -- TODO: The obvious thing....  
-        value7 = M.fromJust $ extractUnderlyingTextFromAesonValueString value6    -- Integer
-        hash = T.unpack value7
+        hash = 
+            case Prelude.lookup "hash" value1 of 
+                Nothing -> ""
+                Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""
 
     in (filename,filesize,hash)
 
 aesonValueForDirectoryGaiaProjection :: A.Value -> ( String, [String] ) -- ( foldername, [CAS-Keys(s)] ) ( String, [String] )
 aesonValueForDirectoryGaiaProjection aValue =
     let
-        value1 = extractListOfPairsFromAesonValue aValue
-        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 ) -- TODO: The obvious thing....
-        value3 = M.fromJust $ extractUnderlyingTextFromAesonValueString value2
-        foldername = T.unpack value3
+        value1 = extractListOfPairsFromAesonValue aValue []
 
-        value6 = M.fromJust $ Prelude.lookup "contents" ( M.fromJust value1 )                  -- AesonValueNumber -- TODO: The obvious thing....  
-        value7 = M.fromJust $ extractUnderlyingListOfStringsFromAesonValueVectorString value6  -- [String] -- TODO: The obvious thing....
-        contents = value7
+        foldername = 
+            case Prelude.lookup "name" value1 of
+                Nothing -> "" 
+                Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 "" 
+
+        contents = 
+            case Prelude.lookup "contents" value1 of
+                Nothing -> []
+                Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
 
     in (foldername, contents)
