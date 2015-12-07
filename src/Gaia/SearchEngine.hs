@@ -20,13 +20,9 @@ import qualified Data.Char as C
 
 import qualified Gaia.Directives as GD
 
-import           Filesystem.Path (directory)
-
-import           Filesystem.Path.Rules
-    -- encodeString :: Rules platformFormat -> FilePath -> String
-    -- decodeString :: Rules platformFormat -> String -> FilePath
-
 import qualified Data.ByteString.Lazy.Char8 as Char8
+
+import qualified System.FilePath as FS
 
 type LocationPath = String
 
@@ -51,24 +47,8 @@ shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath 
 shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern parsedirectives = 
     True
 
-extractParentDirectoryFolderPath :: String -> String
-extractParentDirectoryFolderPath locationpath = locationpath -- directory locationpath
-
 shouldRetainThisLocationInVirtueOfTheName :: String -> String -> Bool
 shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf ( map (\c -> C.toLower c ) pattern ) ( map (\c -> C.toLower c ) name )
-
--- -----------------------------------------------------------
-
-{-
-	The two below functions are temporary
-	TODO: Update them 
--}
-
-stringToFSFilePath :: String -> FilePath
-stringToFSFilePath locationpath = locationpath -- decodeString "" locationpath 
-
-fSFilePathToString :: FilePath -> String
-fSFilePathToString locationpath = locationpath -- encodeString "" locationpath
 
 -- -----------------------------------------------------------
 
@@ -118,7 +98,7 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile p
                   Right directives -> do
                     if shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern directives
                         then
-                            return $ Just [ extractParentDirectoryFolderPath locationpath ]
+                            return $ Just [ FS.takeDirectory locationpath ]
                         else
                             return $ Just []
             else
