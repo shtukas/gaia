@@ -36,12 +36,6 @@ aionTreeFsckFileGaiaProjection gaiaProjection = do
 aionTreeFsckDirectoryGaiaProjection :: ( String, [String] ) -> IO Bool -- ( String, [String] ) -> IO Bool
 aionTreeFsckDirectoryGaiaProjection gaiaProjection = do
     let caskeys = snd gaiaProjection
-    let bools1 = map (\key -> aionTreeFsckCASKey key ) caskeys -- [ IO Bool ]
-    let bools2 = sequence bools1 -- IO [ Bool ]
-    bools3 <- bools2 -- [ Bool ]
-    return $ all (\b -> b) bools3 -- Funny that it has to be done that way
-
-
-
-
-
+    bools <- mapM aionTreeFsckCASKey caskeys -- [ IO Bool ] ~mapM~> IO [Bool] ~> [Bool]
+    return $ and bools
+    

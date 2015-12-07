@@ -2,7 +2,7 @@ module Gaia.UserPreferences where
 
 import           System.Directory as Dir
 import           System.Environment (getEnv)
-import           System.IO.Error (catchIOError, ioError, isDoesNotExistError)
+import           System.IO.Error (catchIOError, isDoesNotExistError)
 import qualified System.FilePath as FS
 
 import           Gaia.Types
