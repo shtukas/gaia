@@ -51,7 +51,10 @@ To run the web server do `stack exec gaia-web` (this command must be ran at the 
 
 ## What does the search do ?
 
-The search is currently done by `gaia-utils run-query <pattern>`. In this commit it simply returns location paths that have the pattern as substring of a foldername or filename. 
+The search is currently done by `gaia-utils run-query <pattern>`. In this commit it 
+
+- Peturns location paths that have the pattern as substring of a foldername or filename. 
+- Processes gaia files and read their tags.
 
 More to come in next commits...
 

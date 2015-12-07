@@ -20,19 +20,52 @@ import qualified Data.List as D
 
 import qualified Data.Char as C
 
+import qualified Gaia.Directives as GD
+
+import Filesystem.Path (directory)
+
+import Filesystem.Path.Rules
+    -- encodeString :: Rules platformFormat -> FilePath -> String
+    -- decodeString :: Rules platformFormat -> String -> FilePath
+
 type Locationpath = String
 
 -- -----------------------------------------------------------
 
 {-
     In the first section we implement the selection process. 
-    Currently we search for occurences of substrings in location paths
+    Currently we 
+        - search for occurences of substrings in location paths
+        - process tags in gaia files
 -}
 
 -- -----------------------------------------------------------
 
 shouldRetainThisLocationPath :: Locationpath -> String -> Bool
 shouldRetainThisLocationPath locationpath pattern = D.isInfixOf pattern locationpath
+
+-- *AesonObjectsUtils> Gaia.Directives.parseDirectivesFile "/Users/pascal/Desktop/Gifs/gaia" 
+-- Right [Tag -> "Use the force, Luke"]
+
+shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: Locationpath -> String -> [GD.Directive] -> Bool
+shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern parsedirectives = 
+    True
+
+extractParentDirectoryFolderpath :: String -> String
+extractParentDirectoryFolderpath locationpath = locationpath -- directory locationpath
+
+shouldRetainThisLocationInVirtueOfTheName :: String -> String -> Bool
+shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf ( map (\c -> C.toLower c ) pattern ) ( map (\c -> C.toLower c ) name )
+
+-- -----------------------------------------------------------
+
+-- The two below functions are temporary
+
+stringToFSFilepath :: String -> FilePath
+stringToFSFilepath locationpath = locationpath -- decodeString "" locationpath 
+
+fSFilepathToString :: FilePath -> String
+fSFilepathToString locationpath = locationpath -- encodeString "" locationpath
 
 -- -----------------------------------------------------------
 
@@ -64,8 +97,27 @@ extractLocationpathsForAesonValueFileAndPatternAndLocationpath :: A.Value -> Str
 extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObjectFile pattern locationpath = 
     do
         let aValue = aesonObjectFile
-            (filename, filesize, sha1shah) = AesonObjectsUtils.aesonValueForFileGaiaProjection aValue
-        return $ Just [locationpath]
+        let (filename, filesize, sha1shah) = AesonObjectsUtils.aesonValueForFileGaiaProjection aValue
+        if filename=="gaia" 
+            then do
+                -- parseDirectivesFile :: Filepath -> IO (Either ParseError [Directive])
+                epd <- GD.parseDirectivesFile (locationpath)
+                -- Either ParseError [Directive]
+                case epd of
+                  Left x ->
+                        return $ Just []
+                  Right directives -> do
+                    if shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern directives
+                        then
+                            return $ Just [ extractParentDirectoryFolderpath locationpath ]
+                        else
+                            return $ Just []
+            else
+                if shouldRetainThisLocationInVirtueOfTheName filename pattern
+                    then 
+                        return $ Just [locationpath]
+                    else
+                        return $ Just []
 
 -- -----------------------------------------------------------
 
@@ -98,11 +150,13 @@ extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectD
 
         let array5 = concat array4
 
-        let array6 = [locationpath] ++ array5
+        let array6 = if shouldRetainThisLocationInVirtueOfTheName foldername pattern
+                        then 
+                            [locationpath] ++ array5
+                        else
+                            array5
 
-        let array7 = filter ( \l -> shouldRetainThisLocationPath ( map (\c -> C.toLower c) l ) ( map (\c -> C.toLower c) pattern ) ) array6
-
-        return $ Just array7
+        return $ Just array6
 
 -- -----------------------------------------------------------
 
