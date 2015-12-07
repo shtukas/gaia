@@ -21,6 +21,7 @@ library
                        Gaia.AesonObjectsUtils
                      , Gaia.Directives
                      , Gaia.FSRootsManagement
+                     , Gaia.GeneralUtils
                      , Gaia.ScanningAndRecordingManager
                      , Gaia.SearchEngine
                      , Gaia.SystemIntegrity

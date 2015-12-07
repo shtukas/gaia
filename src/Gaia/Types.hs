@@ -7,12 +7,12 @@ type LocationPath = String
 
 -- Gaia Files
 
-type DirectiveBody = String
-data DirectiveTag  = Tag        -- | NewTag1 | NewTag2 ...
+type GaiaFileDirectiveBody = String
+data GaiaFileDirectiveTag  = GaiaFileTag        -- | NewTag1 | NewTag2 ...
                      deriving (Eq, Show)
 
-data Directive = Directive DirectiveTag DirectiveBody
+data GaiaFileDirective = GaiaFileDirective GaiaFileDirectiveTag GaiaFileDirectiveBody
                  deriving (Eq)
 
-instance Show Directive where
-  show (Directive t b) = show t ++ " -> " ++ "\"" ++ b ++ "\""
+instance Show GaiaFileDirective where
+  show (GaiaFileDirective t b) = show t ++ " -> " ++ "\"" ++ b ++ "\""

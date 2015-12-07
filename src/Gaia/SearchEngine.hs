@@ -24,7 +24,9 @@ import qualified Data.ByteString.Lazy.Char8 as Char8
 
 import qualified System.FilePath as FS
 
-type LocationPath = String
+import           Gaia.Types
+
+import qualified Gaia.GeneralUtils as GU
 
 -- -----------------------------------------------------------
 
@@ -43,12 +45,15 @@ shouldRetainThisLocationPath locationpath pattern = D.isInfixOf pattern location
 -- *AesonObjectsUtils> Gaia.Directives.parseDirectivesFile "/Users/pascal/Desktop/Gifs/gaia" 
 -- Right [Tag -> "Use the force, Luke"]
 
-shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath -> String -> [GD.Directive] -> Bool
+shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath -> String -> [GD.GaiaFileDirective] -> Bool
 shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern parsedirectives = 
-    True
+    or $ map (\directive -> 
+                case directive of
+                   GaiaFileDirective GaiaFileTag body -> D.isInfixOf ( GU.stringToLower pattern ) ( GU.stringToLower body )      
+             ) parsedirectives
 
 shouldRetainThisLocationInVirtueOfTheName :: String -> String -> Bool
-shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf ( map (\c -> C.toLower c ) pattern ) ( map (\c -> C.toLower c ) name )
+shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf ( GU.stringToLower pattern ) ( GU.stringToLower name )
 
 -- -----------------------------------------------------------
 

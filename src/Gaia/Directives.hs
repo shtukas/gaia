@@ -1,7 +1,7 @@
 module Gaia.Directives(
-  DirectiveBody,
-  DirectiveTag,
-  Directive(..),
+  GaiaFileDirectiveBody,
+  GaiaFileDirectiveTag,
+  GaiaFileDirective(..),
   parseDirectives,
   parseDirectivesFile
 ) where
@@ -37,21 +37,21 @@ comment  = char '#' *> spaces *> restOfLine
 ignorable :: Parser String
 ignorable  = many (comment <|> emptyLine) *> return ""
 
-tag :: Parser DirectiveTag
-tag  = try (string "tag" >> return Tag)
+tag :: Parser GaiaFileDirectiveTag
+tag  = try (string "tag" >> return GaiaFileTag)
        -- <|> (string "..." >> return ...) ...
        <|> (do
               t <- many (alphaNum <|> char '_')
               fail $ "Unknown tag: " ++ show t)
 
-directive :: Parser Directive
+directive :: Parser GaiaFileDirective
 directive  = do
                t <- tag
                _ <- char ':' *> spaces
                content <- restOfLine
-               return (Directive t content)
+               return (GaiaFileDirective t content)
 
-directives :: Parser [Directive]
+directives :: Parser [GaiaFileDirective]
 directives  = do
                 _ <- string "gaia"
                 d <- many1 $ try (ignorable >> directive)
@@ -60,8 +60,8 @@ directives  = do
 
 
 -- DIRECTIVES PARSER
-parseDirectives :: String -> Either ParseError [Directive]
+parseDirectives :: String -> Either ParseError [GaiaFileDirective]
 parseDirectives  = parse directives ""
 
-parseDirectivesFile :: FilePath -> IO (Either ParseError [Directive])
+parseDirectivesFile :: FilePath -> IO (Either ParseError [GaiaFileDirective])
 parseDirectivesFile  = parseFromFile directives
