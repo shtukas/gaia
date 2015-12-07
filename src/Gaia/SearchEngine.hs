@@ -1,32 +1,22 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Gaia.SearchEngine (
     extractLocationPathsForAionCASKeyAndPatternAndLocationPath,
     runQueryAgainMerkleRootUsingStoredData
 ) where
 
-import qualified Data.Aeson as A
+import qualified Data.Aeson                               as A
     -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
-
-import qualified Data.Maybe as M
-
-import qualified PStorageServices.ContentAddressableStore as CAS
-
-import qualified Gaia.AesonObjectsUtils as GAOU
-
-import qualified Data.List as D
-
-import qualified Data.Char as C
-
-import qualified Gaia.Directives as GD
-
-import qualified Data.ByteString.Lazy.Char8 as Char8
-
-import qualified System.FilePath as FS
-
+import qualified Data.ByteString.Lazy.Char8               as Char8
+import qualified Data.List                                as D
+import           Data.Maybe                               (catMaybes)
+import qualified Gaia.AesonObjectsUtils                   as GAOU
+import qualified Gaia.Directives                          as GD
+import qualified Gaia.GeneralUtils                        as GU
 import           Gaia.Types
-
-import qualified Gaia.GeneralUtils as GU
+import qualified PStorageServices.ContentAddressableStore as CAS
+import qualified System.FilePath                          as FS
 
 -- -----------------------------------------------------------
 
@@ -40,20 +30,20 @@ import qualified Gaia.GeneralUtils as GU
 -- -----------------------------------------------------------
 
 shouldRetainThisLocationPath :: LocationPath -> String -> Bool
-shouldRetainThisLocationPath locationpath pattern = D.isInfixOf pattern locationpath
+shouldRetainThisLocationPath locationpath pattern = pattern `D.isInfixOf` locationpath
 
 -- *AesonObjectsUtils> Gaia.Directives.parseDirectivesFile "/Users/pascal/Desktop/Gifs/gaia" 
 -- Right [Tag -> "Use the force, Luke"]
 
 shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath -> String -> [GD.GaiaFileDirective] -> Bool
-shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern parsedirectives = 
-    or $ map (\directive -> 
-                case directive of
-                   GaiaFileDirective GaiaFileTag body -> D.isInfixOf ( GU.stringToLower pattern ) ( GU.stringToLower body )      
-             ) parsedirectives
+shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives _ pattern parsedirectives = 
+    any (\directive -> 
+            case directive of
+               GaiaFileDirective GaiaFileTag body -> ( GU.stringToLower pattern ) `D.isInfixOf` ( GU.stringToLower body )
+        ) parsedirectives
 
 shouldRetainThisLocationInVirtueOfTheName :: String -> String -> Bool
-shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf ( GU.stringToLower pattern ) ( GU.stringToLower name )
+shouldRetainThisLocationInVirtueOfTheName name pattern = ( GU.stringToLower pattern ) `D.isInfixOf` ( GU.stringToLower name )
 
 -- -----------------------------------------------------------
 
@@ -91,14 +81,14 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> Str
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile pattern locationpath = 
     do
         let aValue = aesonObjectFile
-        let (filename, filesize, sha1shah) = GAOU.aesonValueForFileGaiaProjection aValue
+        let (filename,_,_) = GAOU.aesonValueForFileGaiaProjection aValue
         if filename=="gaia" 
             then do
                 -- parseDirectivesFile :: FilePath -> IO (Either ParseError [Directive])
-                epd <- GD.parseDirectivesFile (locationpath)
+                epd <- GD.parseDirectivesFile locationpath
                 -- Either ParseError [Directive]
                 case epd of
-                  Left x ->
+                  Left _ ->
                         return $ Just []
                   Right directives -> do
                     if shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern directives
@@ -119,44 +109,28 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile p
 
 extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO ( Maybe [ LocationPath ] )
 extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObjectDirectory pattern locationpath = 
-    do
-        let aValue = aesonObjectDirectory
-
-        let (foldername, caskeys) = GAOU.aesonValueForDirectoryGaiaProjection aesonObjectDirectory 
-            -- ( foldername, [CAS-Keys(s)] ) 
-            -- ( String, [String] )
-
-        let array1 = map (\caskey -> 
-                            do
-                                name' <- casKeyToAionName caskey
-                                case name' of 
+        let (foldername, caskeys) = GAOU.aesonValueForDirectoryGaiaProjection aesonObjectDirectory
+        -- ( foldername, [CAS-Keys(s)] )
+        -- ( String, [String] )
+    in do
+        arrays <- mapM (\caskey -> do
+                                    name' <- casKeyToAionName caskey
+                                    case name' of
                                         Nothing   -> return Nothing
                                         Just name -> extractLocationPathsForAionCASKeyAndPatternAndLocationPath caskey pattern (FS.normalise $ FS.joinPath [locationpath, name])
                         ) caskeys
-            -- [ IO ( Maybe [ LocationPath ] ) ]
+            -- [ IO ( Maybe [ LocationPath ] ) ] ~mapM~> IO [ Maybe [ LocationPath ] ] ~> [ Maybe [ LocationPath ] ]
 
-        let array2 = sequence array1
-            -- IO [ Maybe [ LocationPath ] ]
+        let array = concat $ catMaybes arrays
+             -- [ Maybe [ LocationPath ] ] ~catMaybes~> [ [ LocationPath ] ] ~> [LocationPath]
 
-        array3 <- array2
-            -- [ Maybe [ LocationPath ] ]
+        let array' = if shouldRetainThisLocationInVirtueOfTheName foldername pattern
+            then
+                locationpath : array
+            else
+                array
 
-        let array4 = map (\x -> 
-                            case x of
-                                Nothing -> []
-                                Just x' -> x' 
-                        ) array3       
-             -- [ [ LocationPath ] ]
-
-        let array5 = concat array4
-
-        let array6 = if shouldRetainThisLocationInVirtueOfTheName foldername pattern
-                        then 
-                            [locationpath] ++ array5
-                        else
-                            array5
-
-        return $ Just array6
+        return $ Just array'
 
 -- -----------------------------------------------------------
 
