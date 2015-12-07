@@ -1,13 +1,13 @@
 module Main where
 
 import           System.Environment
-import qualified SearchEngine
-import qualified ScanningAndRecordingManager
-import qualified ContentAddressableStore
+import qualified Gaia.SearchEngine as SE
+import qualified Gaia.ScanningAndRecordingManager as SRM
+import qualified PStorageServices.ContentAddressableStore as CAS
 import qualified Data.Maybe as M
-import qualified AesonObjectsUtils
-import qualified SystemIntegrity
-import qualified FSRootsManagement
+import qualified Gaia.AesonObjectsUtils as AOU
+import qualified Gaia.SystemIntegrity as SI
+import qualified Gaia.FSRootsManagement as FSM
 import qualified Data.ByteString.Lazy.Char8 as Char8
 
 printHelp :: IO ()
@@ -32,13 +32,13 @@ doTheThing1 args
         putStrLn ""        
 
     | (head args) == "general-scan" = do
-        ScanningAndRecordingManager.generalScan
+        SRM.generalScan
 
     | (head args) == "get-merkle-roots" = do
-        scanroots <- FSRootsManagement.getFSScanRoots
+        scanroots <- FSM.getFSScanRoots
         _ <- sequence $ map ( \scanroot -> do 
                             putStrLn $ "location: "++scanroot
-                            merkle <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
+                            merkle <- SRM.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
                             case merkle of
                                 Nothing      -> putStrLn "merkle  : Unknown!"
                                 Just merkle' -> putStrLn $ "merkle  : " ++ merkle'
@@ -47,35 +47,35 @@ doTheThing1 args
 
     | ( (head args) == "cas-get" ) && ( length args >= 2 ) = do 
         let key = ( head $ drop 1 args )
-        string <- ContentAddressableStore.get key
+        string <- CAS.get key
         case string of 
             Nothing      -> putStrLn "error: Could not retrive data for this key"
             Just string' -> putStrLn $ Char8.unpack string' 
 
     | ( (head args) == "expose-aeson-object" ) && ( length args >= 2 ) = do
         let aion_cas_hash = ( head $ drop 1 args )
-        aionJSONValueAsString <- ContentAddressableStore.get aion_cas_hash
+        aionJSONValueAsString <- CAS.get aion_cas_hash
         case aionJSONValueAsString of 
             Nothing                     -> putStrLn "error: Could not retrive data for this key"
             Just aionJSONValueAsString' -> 
                 if ( length $ Char8.unpack aionJSONValueAsString' ) == 0
-                    then putStrLn "I could not find a ContentAddressableStore record"  
+                    then putStrLn "I could not find a Content Addressable Store record"  
                     else do 
-                        let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue ( Char8.unpack aionJSONValueAsString' ) 
+                        let aionJSONValueMaybe = AOU.convertJSONStringIntoAesonValue ( Char8.unpack aionJSONValueAsString' ) 
                         case aionJSONValueMaybe of
                             Nothing            -> putStrLn "I could not convert the record to a Aeson Object"  
                             Just aionJSONValue -> putStrLn $ show aionJSONValue
 
     | ( (head args) == "run-query" ) && ( length args >= 2 ) = do
         let pattern = ( head $ drop 1 args )
-        scanroots <- FSRootsManagement.getFSScanRoots
+        scanroots <- FSM.getFSScanRoots
         _ <- sequence $ map ( \scanroot -> do 
                             putStrLn scanroot
-                            merkleroot <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
+                            merkleroot <- SRM.getCurrentMerkleRootForFSScanRoot scanroot
                             case merkleroot of 
                                 Nothing          -> putStrLn "error: Could not retrieve Merkle root for this location"
                                 Just merkleroot' -> do
-                                    locationpaths' <- SearchEngine.runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ Locationpath ] )
+                                    locationpaths' <- SE.runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
                                     case locationpaths' of
                                         Nothing            -> putStrLn "error: Query has failed (for some reasons...)"
                                         Just locationpaths -> do 
@@ -87,14 +87,14 @@ doTheThing1 args
         return ()
 
     | (head args) == "fsck" = do
-        scanroots <- FSRootsManagement.getFSScanRoots
+        scanroots <- FSM.getFSScanRoots
         _ <- sequence $ map ( \scanroot -> do 
                             putStrLn scanroot
-                            merkleroot' <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
+                            merkleroot' <- SRM.getCurrentMerkleRootForFSScanRoot scanroot
                             case merkleroot' of 
                                 Nothing         -> putStrLn "error: Could not retrieve Merkle root for this location"
                                 Just merkleroot -> do
-                                    bool <- SystemIntegrity.aionTreeFsckCASKey merkleroot
+                                    bool <- SI.aionTreeFsckCASKey merkleroot
                                     if bool
                                         then putStrLn "Aion Tree is correct"
                                         else putStrLn "error: Aion Tree does not check out"
@@ -103,21 +103,21 @@ doTheThing1 args
         return ()
 
     | (head args) == "status-report" = do
-        roots <- FSRootsManagement.getFSScanRoots
+        roots <- FSM.getFSScanRoots
         putStr "FS Scan Root file has "
         putStr $ show $ length roots
         putStrLn " elements"
 
     | (head args) == "print-fs-roots" = do
-        FSRootsManagement.printFSRootsListing
+        FSM.printFSRootsListing
 
     | ( (head args) == "add-fs-root" ) && ( length args >= 2 ) = do
         let fsroot = ( head $ drop 1 args )
-        FSRootsManagement.addFSRoot fsroot       
+        FSM.addFSRoot fsroot       
 
     | ( (head args) == "remove-fs-root" ) && ( length args >= 2 ) = do
         let fsroot = ( head $ drop 1 args )
-        FSRootsManagement.removeFSRoot fsroot  
+        FSM.removeFSRoot fsroot  
 
     | otherwise = do 
         putStrLn ""

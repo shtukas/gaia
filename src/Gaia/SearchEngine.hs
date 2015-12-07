@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
-module SearchEngine (
-    extractLocationpathsForAionCASKeyAndPatternAndLocationpath,
+module Gaia.SearchEngine (
+    extractLocationPathsForAionCASKeyAndPatternAndLocationPath,
     runQueryAgainMerkleRootUsingStoredData
 ) where
 
@@ -10,11 +10,9 @@ import qualified Data.Aeson as A
 
 import qualified Data.Maybe as M
 
-import qualified AesonObjectsUtils
+import qualified PStorageServices.ContentAddressableStore as CAS
 
-import qualified ContentAddressableStore
-
-import qualified AesonObjectsUtils
+import qualified Gaia.AesonObjectsUtils as GAOU
 
 import qualified Data.List as D
 
@@ -30,7 +28,7 @@ import           Filesystem.Path.Rules
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
 
-type Locationpath = String
+type LocationPath = String
 
 -- -----------------------------------------------------------
 
@@ -43,18 +41,18 @@ type Locationpath = String
 
 -- -----------------------------------------------------------
 
-shouldRetainThisLocationPath :: Locationpath -> String -> Bool
+shouldRetainThisLocationPath :: LocationPath -> String -> Bool
 shouldRetainThisLocationPath locationpath pattern = D.isInfixOf pattern locationpath
 
 -- *AesonObjectsUtils> Gaia.Directives.parseDirectivesFile "/Users/pascal/Desktop/Gifs/gaia" 
 -- Right [Tag -> "Use the force, Luke"]
 
-shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: Locationpath -> String -> [GD.Directive] -> Bool
+shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath -> String -> [GD.Directive] -> Bool
 shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern parsedirectives = 
     True
 
-extractParentDirectoryFolderpath :: String -> String
-extractParentDirectoryFolderpath locationpath = locationpath -- directory locationpath
+extractParentDirectoryFolderPath :: String -> String
+extractParentDirectoryFolderPath locationpath = locationpath -- directory locationpath
 
 shouldRetainThisLocationInVirtueOfTheName :: String -> String -> Bool
 shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf ( map (\c -> C.toLower c ) pattern ) ( map (\c -> C.toLower c ) name )
@@ -66,11 +64,11 @@ shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf ( map (\c -
 	TODO: Update them 
 -}
 
-stringToFSFilepath :: String -> FilePath
-stringToFSFilepath locationpath = locationpath -- decodeString "" locationpath 
+stringToFSFilePath :: String -> FilePath
+stringToFSFilePath locationpath = locationpath -- decodeString "" locationpath 
 
-fSFilepathToString :: FilePath -> String
-fSFilepathToString locationpath = locationpath -- encodeString "" locationpath
+fSFilePathToString :: FilePath -> String
+fSFilePathToString locationpath = locationpath -- encodeString "" locationpath
 
 -- -----------------------------------------------------------
 
@@ -84,34 +82,34 @@ fSFilepathToString locationpath = locationpath -- encodeString "" locationpath
 
 casKeyToAionName :: String -> IO ( Maybe String )
 casKeyToAionName key = do
-    aionPointAsMaybeByteString <- ContentAddressableStore.get key
+    aionPointAsMaybeByteString <- CAS.get key
     case aionPointAsMaybeByteString of
         Nothing                    -> return Nothing
         Just aionPointAsByteString -> do
-            let aesonValue = AesonObjectsUtils.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString)
+            let aesonValue = GAOU.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString)
             case aesonValue of
                 Nothing          -> return Nothing 
                 Just aesonValue' -> 
-                    if AesonObjectsUtils.aesonValueIsFile aesonValue'
+                    if GAOU.aesonValueIsFile aesonValue'
                         then do
-                            let (filename,_,_) = AesonObjectsUtils.aesonValueForFileGaiaProjection aesonValue'
+                            let (filename,_,_) = GAOU.aesonValueForFileGaiaProjection aesonValue'
                             return $ Just filename
                         else do
-                            let (foldername,_) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonValue'
+                            let (foldername,_) = GAOU.aesonValueForDirectoryGaiaProjection aesonValue'
                             return $ Just foldername
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAesonValueFileAndPatternAndLocationpath <aesonObjectFile> <search pattern> <current path>
+-- extractLocationPathsForAesonValueFileAndPatternAndLocationPath <aesonObjectFile> <search pattern> <current path>
 
-extractLocationpathsForAesonValueFileAndPatternAndLocationpath :: A.Value -> String -> Locationpath -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObjectFile pattern locationpath = 
+extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO ( Maybe [ LocationPath ] )
+extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObjectFile pattern locationpath = 
     do
         let aValue = aesonObjectFile
-        let (filename, filesize, sha1shah) = AesonObjectsUtils.aesonValueForFileGaiaProjection aValue
+        let (filename, filesize, sha1shah) = GAOU.aesonValueForFileGaiaProjection aValue
         if filename=="gaia" 
             then do
-                -- parseDirectivesFile :: Filepath -> IO (Either ParseError [Directive])
+                -- parseDirectivesFile :: FilePath -> IO (Either ParseError [Directive])
                 epd <- GD.parseDirectivesFile (locationpath)
                 -- Either ParseError [Directive]
                 case epd of
@@ -120,7 +118,7 @@ extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObjectFile p
                   Right directives -> do
                     if shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern directives
                         then
-                            return $ Just [ extractParentDirectoryFolderpath locationpath ]
+                            return $ Just [ extractParentDirectoryFolderPath locationpath ]
                         else
                             return $ Just []
             else
@@ -132,14 +130,14 @@ extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObjectFile p
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath <aesonObjectDirectory> <search pattern> <current path>
+-- extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath <aesonObjectDirectory> <search pattern> <current path>
 
-extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath :: A.Value -> String -> Locationpath -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectDirectory pattern locationpath = 
+extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO ( Maybe [ LocationPath ] )
+extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObjectDirectory pattern locationpath = 
     do
         let aValue = aesonObjectDirectory
 
-        let (foldername, caskeys) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonObjectDirectory 
+        let (foldername, caskeys) = GAOU.aesonValueForDirectoryGaiaProjection aesonObjectDirectory 
             -- ( foldername, [CAS-Keys(s)] ) 
             -- ( String, [String] )
 
@@ -148,22 +146,22 @@ extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectD
                                 name' <- casKeyToAionName caskey
                                 case name' of 
                                         Nothing   -> return Nothing
-                                        Just name -> extractLocationpathsForAionCASKeyAndPatternAndLocationpath caskey pattern (locationpath ++ "/" ++ name)
+                                        Just name -> extractLocationPathsForAionCASKeyAndPatternAndLocationPath caskey pattern (locationpath ++ "/" ++ name)
                         ) caskeys
-            -- [ IO ( Maybe [ Locationpath ] ) ]
+            -- [ IO ( Maybe [ LocationPath ] ) ]
 
         let array2 = sequence array1
-            -- IO [ Maybe [ Locationpath ] ]
+            -- IO [ Maybe [ LocationPath ] ]
 
         array3 <- array2
-            -- [ Maybe [ Locationpath ] ]
+            -- [ Maybe [ LocationPath ] ]
 
         let array4 = map (\x -> 
                             case x of
                                 Nothing -> []
                                 Just x' -> x' 
                         ) array3       
-             -- [ [ Locationpath ] ]
+             -- [ [ LocationPath ] ]
 
         let array5 = concat array4
 
@@ -177,35 +175,35 @@ extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectD
 
 -- -----------------------------------------------------------
 
-extractLocationpathsForAesonValueAndPatternAndLocationpath :: A.Value -> String -> Locationpath -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAesonValueAndPatternAndLocationpath aesonObject pattern locationpath = 
-    if AesonObjectsUtils.aesonValueIsFile aesonObject
+extractLocationPathsForAesonValueAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO ( Maybe [ LocationPath ] )
+extractLocationPathsForAesonValueAndPatternAndLocationPath aesonObject pattern locationpath = 
+    if GAOU.aesonValueIsFile aesonObject
         then do
-            extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObject pattern locationpath
+            extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObject pattern locationpath
         else do
-            extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObject pattern locationpath
+            extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObject pattern locationpath
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAionCASKeyAndPatternAndLocationpath <aion cas hash> <search pattern> <current path>
+-- extractLocationPathsForAionCASKeyAndPatternAndLocationPath <aion cas hash> <search pattern> <current path>
 
-extractLocationpathsForAionCASKeyAndPatternAndLocationpath :: String -> String -> Locationpath -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionCASKeyAndPatternAndLocationpath _ "" _ = do
+extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO ( Maybe [ LocationPath ] )
+extractLocationPathsForAionCASKeyAndPatternAndLocationPath _ "" _ = do
     return $ Just []
-extractLocationpathsForAionCASKeyAndPatternAndLocationpath aion_cas_hash pattern locationpath = do
-    aionJSONValueAsString' <- AesonObjectsUtils.getAesonJSONStringForCASKey aion_cas_hash
+extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern locationpath = do
+    aionJSONValueAsString' <- GAOU.getAesonJSONStringForCASKey aion_cas_hash
     case aionJSONValueAsString' of
         Nothing                    -> return Nothing
         Just aionJSONValueAsString -> do
-            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue aionJSONValueAsString
+            let aionJSONValueMaybe = GAOU.convertJSONStringIntoAesonValue aionJSONValueAsString
             case aionJSONValueMaybe of
                 Nothing                 -> return Nothing 
                 Just aionJSONValue -> do  
-                    extractLocationpathsForAesonValueAndPatternAndLocationpath aionJSONValue pattern locationpath
+                    extractLocationPathsForAesonValueAndPatternAndLocationPath aionJSONValue pattern locationpath
 
 -- -----------------------------------------------------------
 
-runQueryAgainMerkleRootUsingStoredData :: Locationpath -> String -> String -> IO ( Maybe [ Locationpath ] )
+runQueryAgainMerkleRootUsingStoredData :: LocationPath -> String -> String -> IO ( Maybe [ LocationPath ] )
 runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern = do
-    extractLocationpathsForAionCASKeyAndPatternAndLocationpath merkleroot pattern fsroot
+    extractLocationPathsForAionCASKeyAndPatternAndLocationPath merkleroot pattern fsroot
 

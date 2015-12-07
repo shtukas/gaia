@@ -1,22 +1,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module FSRootsManagement where
+module Gaia.FSRootsManagement where
 
 import           System.Directory as Dir
 import qualified Data.List
 import qualified Data.Text
-import qualified UserPreferences
-import qualified Xcache
+import qualified Gaia.UserPreferences as UP
+import qualified PStorageServices.Xcache as X
 import qualified Data.ByteString.Lazy.Char8 as Char8
 
-type Locationpath = String
+type LocationPath = String
 
 -- --------------------------------------------------------------------------
 -- Managing ~/.gaia/FSRootsListing.txt
 
 addFSRoot :: String -> IO ()
 addFSRoot locationpath = do
-    filepath <- UserPreferences.getFSRootsListingFilepath
+    filepath <- UP.getFSRootsListingFilePath
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
@@ -27,7 +27,7 @@ addFSRoot locationpath = do
 
 printFSRootsListing :: IO ()
 printFSRootsListing = do
-    filepath <- UserPreferences.getFSRootsListingFilepath
+    filepath <- UP.getFSRootsListingFilePath
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
@@ -40,7 +40,7 @@ printFSRootsListing = do
 
 removeFSRoot :: String -> IO ()
 removeFSRoot root = do
-    filepath <- UserPreferences.getFSRootsListingFilepath
+    filepath <- UP.getFSRootsListingFilePath
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
@@ -68,7 +68,7 @@ removeFSRoot root = do
 
 getFSScanRoots :: IO [ String ]
 getFSScanRoots = do
-    filepath <- UserPreferences.getFSRootsListingFilepath
+    filepath <- UP.getFSRootsListingFilePath
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
@@ -84,15 +84,15 @@ getFSScanRoots = do
 -- We are going to store the Merkle roots of each FS Scan Root against the FS Scan Root
 -- We then just need a map from FS Scan Roots to Xcache Keys.
 
-xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan :: Locationpath -> String
+xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan :: LocationPath -> String
 xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath = "f9c43482-2ae6-4ecc-be23-d4b1f0c7c85d:"++locationpath
 
-merkleRootForFSRootScan :: Locationpath -> IO ( Maybe String )
+merkleRootForFSRootScan :: LocationPath -> IO ( Maybe String )
 merkleRootForFSRootScan locationpath = do
     let xcachekey = xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath
-    merkleroot <- Xcache.get xcachekey 
+    merkleroot <- X.get xcachekey 
     case merkleroot of 
-    	Nothing   -> return Nothing
-    	Just root -> return $ Just ( Char8.unpack root )
+        Nothing   -> return Nothing
+        Just root -> return $ Just ( Char8.unpack root )
 
 

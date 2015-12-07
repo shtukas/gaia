@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module AesonObjectsUtils where
+module Gaia.AesonObjectsUtils where
 
 -- This module concentrates utility functions to facilitate the reading of Aeson Objects
 
@@ -25,13 +25,13 @@ import qualified Data.Digest.Pure.SHA as SHA
     -- SHA.sha1 :: Char8.ByteString -> Digest SHA1State
     -- SHA.showDigest :: Digest t -> String
 
-import           ContentAddressableStore
+import qualified PStorageServices.ContentAddressableStore as CAS
 
 import qualified Data.Vector as V
 
 import qualified Data.Scientific as S
 
-type Locationpath = String
+type LocationPath = String
 
 {-|
 
@@ -98,7 +98,7 @@ type Locationpath = String
 
 getAesonJSONStringForCASKey :: String -> IO ( Maybe String )
 getAesonJSONStringForCASKey hash = do
-    value <- ContentAddressableStore.get hash
+    value <- CAS.get hash
     case value of 
         Nothing     -> return Nothing
         Just string -> return $ Just ( Char8.unpack string )
@@ -132,7 +132,7 @@ aesonVAlueToString :: A.Value -> String
 aesonVAlueToString value = Char8.unpack $ A.encode value
 
 commitAesonValueToCAS :: A.Value -> IO String
-commitAesonValueToCAS value = ContentAddressableStore.set $ Char8.pack $ aesonVAlueToString value
+commitAesonValueToCAS value = CAS.set $ Char8.pack $ aesonVAlueToString value
 
 -- -----------------------------------------------------------
 --  JSON Strings to Aeson Values

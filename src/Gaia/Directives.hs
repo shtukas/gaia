@@ -15,8 +15,6 @@ import           Text.Parsec.Combinator (many1, manyTill)
 import           Text.Parsec.Error      (ParseError)
 import           Text.Parsec.String     (Parser, parseFromFile)
 
-type Filepath = String
-
 -- NOTES
 -- - to print UTF-8 character we cannot use putStr but instead we
 --   will need to use Text or `mapM_ putChar`
@@ -65,5 +63,5 @@ directives  = do
 parseDirectives :: String -> Either ParseError [Directive]
 parseDirectives  = parse directives ""
 
-parseDirectivesFile :: Filepath -> IO (Either ParseError [Directive])
+parseDirectivesFile :: FilePath -> IO (Either ParseError [Directive])
 parseDirectivesFile  = parseFromFile directives

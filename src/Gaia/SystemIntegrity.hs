@@ -1,16 +1,16 @@
-module SystemIntegrity where
+module Gaia.SystemIntegrity where
 
 import qualified Data.Aeson as A
-import qualified AesonObjectsUtils
+import qualified Gaia.AesonObjectsUtils as GAOU
 
 -- This function checks the Aion Tree below a CAS Key
 aionTreeFsckCASKey :: String -> IO Bool
 aionTreeFsckCASKey caskey = do
-    string' <- AesonObjectsUtils.getAesonJSONStringForCASKey caskey
+    string' <- GAOU.getAesonJSONStringForCASKey caskey
     case string' of 
         Nothing     -> return False
         Just string -> do
-            let aesonValue' = AesonObjectsUtils.convertJSONStringIntoAesonValue string
+            let aesonValue' = GAOU.convertJSONStringIntoAesonValue string
             case aesonValue' of
                 Nothing         -> return False
                 Just aesonValue -> aionTreeFsckAesonValue aesonValue
@@ -19,12 +19,12 @@ aionTreeFsckCASKey caskey = do
 -- This function checks the Aion Tree below a Aeson Value
 aionTreeFsckAesonValue :: A.Value -> IO Bool
 aionTreeFsckAesonValue aesonValue = do
-    if AesonObjectsUtils.aesonValueIsFile aesonValue
+    if GAOU.aesonValueIsFile aesonValue
         then do
-            let gaiaProjection = AesonObjectsUtils.aesonValueForFileGaiaProjection aesonValue
+            let gaiaProjection = GAOU.aesonValueForFileGaiaProjection aesonValue
             aionTreeFsckFileGaiaProjection gaiaProjection
         else do 
-            let gaiaProjection = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonValue
+            let gaiaProjection = GAOU.aesonValueForDirectoryGaiaProjection aesonValue
             aionTreeFsckDirectoryGaiaProjection gaiaProjection
 
 -- This function checks the Aion tree below a file trace
