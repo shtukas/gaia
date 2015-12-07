@@ -28,6 +28,8 @@ import           Filesystem.Path.Rules
     -- encodeString :: Rules platformFormat -> FilePath -> String
     -- decodeString :: Rules platformFormat -> String -> FilePath
 
+import qualified Data.ByteString.Lazy.Char8 as Char8
+
 type Locationpath = String
 
 -- -----------------------------------------------------------
@@ -79,15 +81,21 @@ fSFilepathToString locationpath = locationpath -- encodeString "" locationpath
 
 casKeyToAionName :: String -> IO String
 casKeyToAionName key = do
-    aionPointAsString <- ContentAddressableStore.get key
-    let aesonValue = M.fromJust $ AesonObjectsUtils.convertJSONStringIntoAesonValue ( M.fromJust aionPointAsString )
-    if AesonObjectsUtils.aesonValueIsFile aesonValue
-        then do
-            let (filename,_,_) = AesonObjectsUtils.aesonValueForFileGaiaProjection aesonValue
-            return filename
-        else do
-            let (foldername,_) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonValue
-            return foldername
+    aionPointAsMaybeByteString <- ContentAddressableStore.get key
+    case aionPointAsMaybeByteString of
+        Nothing                    -> return "" -- TODO TODAY : The type of the function itself is not correct 
+        Just aionPointAsByteString -> do
+            let aesonValue = AesonObjectsUtils.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString)
+            case aesonValue of
+                Nothing          -> return "" -- TODO TODAY : The type of the function itself is not correct 
+                Just aesonValue' -> 
+                    if AesonObjectsUtils.aesonValueIsFile aesonValue'
+                        then do
+                            let (filename,_,_) = AesonObjectsUtils.aesonValueForFileGaiaProjection aesonValue'
+                            return filename
+                        else do
+                            let (foldername,_) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonValue'
+                            return foldername
 
 -- -----------------------------------------------------------
 

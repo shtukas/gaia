@@ -4,13 +4,13 @@ module Xcache (
 ) where
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
-import           Data.Digest.Pure.SHA       as SHA
-import qualified Data.Time.Clock.POSIX      as Time
-import qualified System.Directory           as Dir
+import           Data.Digest.Pure.SHA as SHA
+import qualified Data.Time.Clock.POSIX as Time
+import qualified System.Directory as Dir
 import qualified Data.Maybe as M
 import qualified UserPreferences
 
-type Filepath = String
+type Filepath   = String
 type Folderpath = String
 
 -- Data.Digest.Pure.SHA
@@ -26,8 +26,8 @@ type Folderpath = String
 getCurrentUnixTime :: IO Int
 getCurrentUnixTime = round `fmap` Time.getPOSIXTime
 
-getSha1Digest :: String -> String
-getSha1Digest string = SHA.showDigest $ SHA.sha1 $ Char8.pack string
+getSha1Digest :: Char8.ByteString -> String
+getSha1Digest string = SHA.showDigest $ SHA.sha1 string
 
 ensureFolderPath :: Folderpath -> IO ()
 ensureFolderPath = Dir.createDirectoryIfMissing True
@@ -39,7 +39,7 @@ filenameToPathFragments filename =
     in  (f1, f2)
 
 keyToFilename :: String -> String
-keyToFilename key = "sha1-" ++ getSha1Digest key
+keyToFilename key = "sha1-" ++ getSha1Digest ( Char8.pack key )
 
 keyToDataFolderPath :: String -> IO Folderpath
 keyToDataFolderPath key =
@@ -69,17 +69,17 @@ keyToTimestampFilePath key = do
     ensureFolderPath folderpath
     return $ folderpath ++ "/" ++ keyToFilename key
 
-set :: String -> String -> IO ()
+set :: String -> Char8.ByteString -> IO ()
 set key value = do
     datafilepath <- keyToDataFilePath key
     timestampfilepath <- keyToTimestampFilePath key
-    writeFile datafilepath value
+    Char8.writeFile datafilepath value
     currenttime <- getCurrentUnixTime
     writeFile timestampfilepath $ show currenttime
     return ()
 
 -- TODO: refactore to use `MaybeT IO String` and MonadPlus' guard
-get :: String -> IO ( Maybe String )
+get :: String -> IO ( Maybe Char8.ByteString )
 get key = do
     filepath <- keyToDataFilePath key
     fileexists <- Dir.doesFileExist filepath
@@ -88,7 +88,7 @@ get key = do
             timestampfilepath <- keyToTimestampFilePath key
             currenttime <- getCurrentUnixTime
             writeFile timestampfilepath $ show currenttime
-            contents <- readFile filepath
+            contents <- Char8.readFile filepath
             return $ M.Just contents
         else
             return Nothing

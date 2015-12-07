@@ -7,6 +7,7 @@ import qualified Data.List
 import qualified Data.Text
 import qualified UserPreferences
 import qualified Xcache
+import qualified Data.ByteString.Lazy.Char8 as Char8
 
 type Locationpath = String
 
@@ -89,6 +90,9 @@ xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath = "f9c43482-2ae6-
 merkleRootForFSRootScan :: Locationpath -> IO ( Maybe String )
 merkleRootForFSRootScan locationpath = do
     let xcachekey = xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath
-    Xcache.get xcachekey
+    merkleroot <- Xcache.get xcachekey 
+    case merkleroot of 
+    	Nothing   -> return Nothing
+    	Just root -> return $ Just ( Char8.unpack root )
 
 

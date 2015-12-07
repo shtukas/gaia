@@ -1,6 +1,6 @@
 module Main where
 
-import System.Environment
+import           System.Environment
 import qualified SearchEngine
 import qualified ScanningAndRecordingManager
 import qualified ContentAddressableStore
@@ -8,6 +8,7 @@ import qualified Data.Maybe as M
 import qualified AesonObjectsUtils
 import qualified SystemIntegrity
 import qualified FSRootsManagement
+import qualified Data.ByteString.Lazy.Char8 as Char8
 
 printHelp :: IO ()
 printHelp = do
@@ -49,32 +50,25 @@ doTheThing1 args
     | ( (head args) == "cas-get" ) && ( length args >= 2 ) = do 
         let key = ( head $ drop 1 args )
         string <- ContentAddressableStore.get key
-        if M.isJust string
-            then do
-                putStrLn $ M.fromJust string 
-            else
-                putStrLn "error: Could not retrive data for this key"
+        case string of 
+        	Nothing      -> putStrLn "error: Could not retrive data for this key"
+        	Just string' -> putStrLn $ Char8.unpack string' 
 
     | ( (head args) == "expose-aeson-object" ) && ( length args >= 2 ) = do
         let aion_cas_hash = ( head $ drop 1 args )
         aionJSONValueAsString <- ContentAddressableStore.get aion_cas_hash
-        if M.isJust aionJSONValueAsString
-            then
-                if ( length $ M.fromJust aionJSONValueAsString ) == 0
-                    then
-                        putStrLn "I could not find a ContentAddressableStore record"  
-                    else    
-                        do 
-                            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue $ M.fromJust aionJSONValueAsString
-                            if M.isJust aionJSONValueMaybe
-                                then do 
-                                    let aionJSONValue = M.fromJust aionJSONValueMaybe
-                                    putStrLn $ show aionJSONValue
-                                else
-                                    putStrLn "I could not convert the record to a Aeson Object"  
-            else 
-                putStrLn "error: Could not retrive data for this key" 
-        return ()
+        case aionJSONValueAsString of 
+            Nothing                     -> putStrLn "error: Could not retrive data for this key"
+            Just aionJSONValueAsString' -> 
+                if ( length $ Char8.unpack aionJSONValueAsString' ) == 0
+                    then putStrLn "I could not find a ContentAddressableStore record"  
+                    else do 
+                        let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue ( Char8.unpack aionJSONValueAsString' ) 
+                        case aionJSONValueMaybe of
+                            Nothing -> putStrLn "I could not convert the record to a Aeson Object"  
+                            Just aionJSONValue -> do 
+                                let aionJSONValue = M.fromJust aionJSONValueMaybe
+                                putStrLn $ show aionJSONValue 
 
     | ( (head args) == "run-query" ) && ( length args >= 2 ) = do
         let pattern = ( head $ drop 1 args )
