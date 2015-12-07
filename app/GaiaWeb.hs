@@ -35,7 +35,7 @@ main = serve Nothing myApp
 myApp :: ServerPart Response
 myApp = msum
    [
-        dir "api" $ dir "ping" $ pong ,
+        dir "api" $ dir "ping" pong ,
         fileServing
    ]
 

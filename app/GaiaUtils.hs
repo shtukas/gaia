@@ -2,7 +2,6 @@ module Main where
 
 import           Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Lazy.Char8               as Char8
-import qualified Data.Maybe                               as M
 import qualified Gaia.AesonObjectsUtils                   as AOU
 import qualified Gaia.FSRootsManagement                   as FSM
 import qualified Gaia.ScanningAndRecordingManager         as SRM
@@ -27,34 +26,34 @@ printHelp = do
 doTheThing1 :: [String] -> IO ()
 doTheThing1 args
 
-    | length args == 0 = do
+    | null args = do
         putStrLn ""
         printHelp
         putStrLn ""
 
-    | (head args) == "general-scan" = do
+    | head args == "general-scan" = do
         SRM.generalScan
 
-    | (head args) == "get-merkle-roots" = do
+    | head args == "get-merkle-roots" = do
         scanroots <- FSM.getFSScanRoots
-        _ <- sequence $ map ( \scanroot -> do
-                            putStrLn $ "location: "++scanroot
-                            merkle <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
-                            case merkle of
-                                Nothing      -> putStrLn "merkle  : Unknown!"
-                                Just merkle' -> putStrLn $ "merkle  : " ++ merkle'
-                       ) scanroots
+        _ <- mapM ( \scanroot -> do
+                        putStrLn $ "location: "++scanroot
+                        merkle <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
+                        case merkle of
+                            Nothing      -> putStrLn "merkle  : Unknown!"
+                            Just merkle' -> putStrLn $ "merkle  : " ++ merkle'
+                    ) scanroots
         return ()
 
-    | ( (head args) == "cas-get" ) && ( length args >= 2 ) = do
-        let key = ( head $ drop 1 args )
+    | ( head args == "cas-get" ) && ( length args >= 2 ) = do
+        let key = args !! 1
         string <- CAS.get key
         case string of
             Nothing      -> putStrLn "error: Could not retrive data for this key"
             Just string' -> putStrLn $ Char8.unpack string'
 
-    | ( (head args) == "expose-aeson-object" ) && ( length args >= 2 ) = do
-        let aion_cas_hash = ( head $ drop 1 args )
+    | ( head args == "expose-aeson-object" ) && ( length args >= 2 ) = do
+        let aion_cas_hash = args !! 1
         aionJSONValueAsString <- CAS.get aion_cas_hash
         case aionJSONValueAsString of
             Nothing                     -> putStrLn "error: Could not retrive data for this key"
@@ -65,64 +64,64 @@ doTheThing1 args
                         let aionJSONValueMaybe = AOU.convertJSONStringIntoAesonValue ( Char8.unpack aionJSONValueAsString' )
                         case aionJSONValueMaybe of
                             Nothing            -> putStrLn "I could not convert the record to a Aeson Object"
-                            Just aionJSONValue -> putStrLn $ show aionJSONValue
+                            Just aionJSONValue -> print aionJSONValue
 
-    | ( (head args) == "run-query" ) && ( length args >= 2 ) = do
-        let pattern = ( head $ drop 1 args )
+    | ( head args == "run-query" ) && ( length args >= 2 ) = do
+        let pattern = args !! 1
         scanroots <- FSM.getFSScanRoots
-        _ <- sequence $ map ( \scanroot -> do
-                            putStrLn scanroot
-                            merkleroot <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
-                            case merkleroot of
-                                Nothing          -> putStrLn "error: Could not retrieve Merkle root for this location"
-                                Just merkleroot' -> do
-                                    locationpaths' <- runMaybeT $ SE.runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
-                                    case locationpaths' of
-                                        Nothing            -> putStrLn "error: Query has failed (for some reasons...)"
-                                        Just locationpaths -> do
-                                            let folderpaths = locationpaths
-                                            _ <- sequence $ map (\folderpath -> putStrLn ( "    " ++ folderpath)) folderpaths
-                                            return ()
+        _ <- mapM ( \scanroot -> do
+                        putStrLn scanroot
+                        merkleroot <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
+                        case merkleroot of
+                            Nothing          -> putStrLn "error: Could not retrieve Merkle root for this location"
+                            Just merkleroot' -> do
+                                locationpaths' <- runMaybeT $ SE.runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
+                                case locationpaths' of
+                                    Nothing            -> putStrLn "error: Query has failed (for some reasons...)"
+                                    Just locationpaths -> do
+                                        let folderpaths = locationpaths -- this is a redundant allocation, I am for getting rid of it
+                                        _ <- mapM (\folderpath -> putStrLn ("    " ++ folderpath)) folderpaths
+                                        return ()
 
-                       ) scanroots
+                    ) scanroots
         return ()
 
-    | (head args) == "fsck" = do
+    | head args == "fsck" = do
         scanroots <- FSM.getFSScanRoots
-        _ <- sequence $ map ( \scanroot -> do
-                            putStrLn scanroot
-                            merkleroot' <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
-                            case merkleroot' of
-                                Nothing         -> putStrLn "error: Could not retrieve Merkle root for this location"
-                                Just merkleroot -> do
-                                    bool <- SI.aionTreeFsckCASKey merkleroot
-                                    if bool
-                                        then putStrLn "Aion Tree is correct"
-                                        else putStrLn "error: Aion Tree does not check out"
+        _ <- mapM ( \scanroot -> do
+                        putStrLn scanroot
+                        merkleroot' <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
+                        case merkleroot' of
+                            Nothing         -> putStrLn "error: Could not retrieve Merkle root for this location"
+                            Just merkleroot -> do
+                                bool <- SI.aionTreeFsckCASKey merkleroot
+                                if bool
+                                    then putStrLn "Aion Tree is correct"
+                                    else putStrLn "error: Aion Tree does not check out"
 
-                       ) scanroots
+                    ) scanroots
         return ()
 
-    | (head args) == "status-report" = do
+    | head args == "status-report" = do
         roots <- FSM.getFSScanRoots
         putStr "FS Scan Root file has "
         putStr $ show $ length roots
         putStrLn " elements"
 
-    | (head args) == "print-fs-roots" = do
+    | head args == "print-fs-roots" = do
         FSM.printFSRootsListing
 
-    | ( (head args) == "add-fs-root" ) && ( length args >= 2 ) = do
-        let fsroot = ( head $ drop 1 args )
+    | ( head args == "add-fs-root" ) && ( length args >= 2 ) = do
+        let fsroot = args !! 1
         FSM.addFSRoot fsroot
 
-    | ( (head args) == "remove-fs-root" ) && ( length args >= 2 ) = do
-        let fsroot = ( head $ drop 1 args )
+    | ( head args == "remove-fs-root" ) && ( length args >= 2 ) = do
+        let fsroot = args !! 1
         FSM.removeFSRoot fsroot
 
     | otherwise = do
         putStrLn ""
-        putStrLn $ "I could not interpret this: "++(head args)
+        putStrLn $ "I could not interpret this: " ++ head args
         printHelp
         putStrLn ""
 
