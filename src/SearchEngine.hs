@@ -79,23 +79,23 @@ fSFilepathToString locationpath = locationpath -- encodeString "" locationpath
 
 -- -----------------------------------------------------------
 
-casKeyToAionName :: String -> IO String
+casKeyToAionName :: String -> IO ( Maybe String )
 casKeyToAionName key = do
     aionPointAsMaybeByteString <- ContentAddressableStore.get key
     case aionPointAsMaybeByteString of
-        Nothing                    -> return "" -- TODO TODAY : The type of the function itself is not correct 
+        Nothing                    -> return Nothing
         Just aionPointAsByteString -> do
             let aesonValue = AesonObjectsUtils.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString)
             case aesonValue of
-                Nothing          -> return "" -- TODO TODAY : The type of the function itself is not correct 
+                Nothing          -> return Nothing 
                 Just aesonValue' -> 
                     if AesonObjectsUtils.aesonValueIsFile aesonValue'
                         then do
                             let (filename,_,_) = AesonObjectsUtils.aesonValueForFileGaiaProjection aesonValue'
-                            return filename
+                            return $ Just filename
                         else do
                             let (foldername,_) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonValue'
-                            return foldername
+                            return $ Just foldername
 
 -- -----------------------------------------------------------
 
@@ -142,8 +142,10 @@ extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectD
 
         let array1 = map (\caskey -> 
                             do
-                                name <- casKeyToAionName caskey
-                                extractLocationpathsForAionCASKeyAndPatternAndLocationpath caskey pattern (locationpath ++ "/" ++ name) 
+                                name' <- casKeyToAionName caskey
+                                case name' of 
+                                        Nothing   -> return Nothing
+                                        Just name -> extractLocationpathsForAionCASKeyAndPatternAndLocationpath caskey pattern (locationpath ++ "/" ++ name)
                         ) caskeys
             -- [ IO ( Maybe [ Locationpath ] ) ]
 
@@ -153,7 +155,11 @@ extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectD
         array3 <- array2
             -- [ Maybe [ Locationpath ] ]
 
-        let array4 = map (\x -> M.fromJust x ) array3       
+        let array4 = map (\x -> 
+                            case x of
+                                Nothing -> []
+                                Just x' -> x' 
+                        ) array3       
              -- [ [ Locationpath ] ]
 
         let array5 = concat array4
