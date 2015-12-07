@@ -1,6 +1,9 @@
 # Aion Points
 
-Aion points will be the data points that is put in xcache and which represent the file systems trees that are scanned and against which queries can the ran. They are called after `aion` (Pascal's backup/snapshot program). They are JSON objects that are serialized before being committed to disk.
+Aion points will be the data points that are put in xcache. 
+They are JSON objects that are serialized before being committed to disk, 
+and represent the file systems trees that are scanned and against which queries can the ran. 
+They are called after `aion` (Pascal's backup/snapshot program). 
 
 We have essentially two objects types, which represent files and folders. 
 
