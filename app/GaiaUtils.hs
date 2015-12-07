@@ -65,7 +65,7 @@ doTheThing1 args
                         putStrLn "I could not find a ContentAddressableStore record"  
                     else    
                         do 
-                            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject $ M.fromJust aionJSONValueAsString
+                            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue $ M.fromJust aionJSONValueAsString
                             if M.isJust aionJSONValueMaybe
                                 then do 
                                     let aionJSONValue = M.fromJust aionJSONValueMaybe

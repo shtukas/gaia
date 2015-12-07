@@ -79,7 +79,7 @@ filepathToAesonJSONValue :: Filepath -> IO A.Value
 filepathToAesonJSONValue filepath = do
     filesize <- getFileSize filepath
     filecontents <- getFileContents filepath
-    return $ AesonObjectsUtils.makeAesonJSONValueForFile ( getLocationName filepath ) ( fromIntegral filesize ) filecontents
+    return $ AesonObjectsUtils.makeAesonValueForFile ( getLocationName filepath ) ( fromIntegral filesize ) filecontents
 
 --{
 --	"aion-type" : "directory"
@@ -93,9 +93,9 @@ folderpathToAesonJSONValue folderpath = do
     directoryContents <- Dir.getDirectoryContents folderpath
     aesonvalues <- mapM (\filename -> locationToAesonJSONVAlueRecursivelyComputedaAndStored $ folderpath ++ "/" ++ filename)
                        (excludeDotFolders directoryContents)
-    caskeys <- mapM AesonObjectsUtils.commitAesonJSONValueToCAS aesonvalues
+    caskeys <- mapM AesonObjectsUtils.commitAesonValueToCAS aesonvalues
     let aesonvalues2 = map (A.String . T.pack) caskeys
-    return $ AesonObjectsUtils.makeAesonJSONValueForDirectory (getLocationName folderpath) aesonvalues2
+    return $ AesonObjectsUtils.makeAesonValueForDirectory (getLocationName folderpath) aesonvalues2
 
 -- ---------------------------------------------------------------
 
@@ -111,7 +111,7 @@ computeMerkleRootForLocationRecursivelyComputedaAndStored locationpath = do
     if exists
         then do
             value <- locationToAesonJSONVAlueRecursivelyComputedaAndStored locationpath
-            string <- AesonObjectsUtils.commitAesonJSONValueToCAS value
+            string <- AesonObjectsUtils.commitAesonValueToCAS value
             return $ Just string
         else
             return Nothing

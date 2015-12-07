@@ -10,7 +10,7 @@ aionTreeFsckCASKey caskey = do
     string <- AesonObjectsUtils.getAesonJSONStringForCASKey caskey
     if M.isJust string
         then do
-            let aesonValue = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject $ M.fromJust string
+            let aesonValue = AesonObjectsUtils.convertJSONStringIntoAesonValue $ M.fromJust string
             aionTreeFsckAesonValue $ M.fromJust aesonValue
         else do
             return False

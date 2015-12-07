@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
 module SearchEngine (
-    extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath,
+    extractLocationpathsForAionCASKeyAndPatternAndLocationpath,
     runQueryAgainMerkleRootUsingStoredData
 ) where
 
@@ -12,33 +12,63 @@ import qualified Data.Maybe as M
 
 import qualified AesonObjectsUtils
 
+import qualified ContentAddressableStore
+
+import qualified AesonObjectsUtils
+
 type Locationpath = String
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAionJsonFileObjectAndQuery <aesonObjectFile> <search pattern> <current path>
-
-extractLocationpathsForAionJsonFileObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionJsonFileObjectAndQuery aesonObjectFile pattern current_path = 
-    do
-        let aValue = aesonObjectFile
-            (filename, filesize, sha1shah) = AesonObjectsUtils.aesonValueForFileGaiaProjection aValue
-        return $ Just [current_path++"/"++filename]
+{-
+	Each Aion point is a location of the File System
+	Therefore each Aeson Value is a location of the file system
+	In the below <current path> is the full FS path to the object (which is not known by the object itself and must be computed recursively from some root)
+-}
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAionJsonDirectoryObjectAndQuery <aesonObjectDirectory> <search pattern> <current path>
+casKeyToAionName :: String -> IO String
+casKeyToAionName key = do
+    aionPointAsString <- ContentAddressableStore.get key
+    let aesonValue = M.fromJust $ AesonObjectsUtils.convertJSONStringIntoAesonValue ( M.fromJust aionPointAsString )
+    if AesonObjectsUtils.aesonValueIsFile aesonValue
+        then do
+            let (filename,_,_) = AesonObjectsUtils.aesonValueForFileGaiaProjection aesonValue
+            return filename
+        else do
+            let (foldername,_) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonValue
+            return foldername
 
-extractLocationpathsForAionJsonDirectoryObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObjectDirectory pattern current_path = 
+-- -----------------------------------------------------------
+
+-- extractLocationpathsForAesonValueFileAndPatternAndLocationpath <aesonObjectFile> <search pattern> <current path>
+
+extractLocationpathsForAesonValueFileAndPatternAndLocationpath :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObjectFile pattern locationpath = 
+    do
+        let aValue = aesonObjectFile
+            (filename, filesize, sha1shah) = AesonObjectsUtils.aesonValueForFileGaiaProjection aValue
+        return $ Just [locationpath]
+
+-- -----------------------------------------------------------
+
+-- extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath <aesonObjectDirectory> <search pattern> <current path>
+
+extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObjectDirectory pattern locationpath = 
     do
         let aValue = aesonObjectDirectory
 
-        let (foldername, cas_keys) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonObjectDirectory 
+        let (foldername, caskeys) = AesonObjectsUtils.aesonValueForDirectoryGaiaProjection aesonObjectDirectory 
             -- ( foldername, [CAS-Keys(s)] ) 
             -- ( String, [String] )
 
-        let array1 = map (\k -> extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath k pattern (current_path ++ "/" ++ foldername) ) cas_keys
+        let array1 = map (\caskey -> 
+                            do
+                                name <- casKeyToAionName caskey
+                                extractLocationpathsForAionCASKeyAndPatternAndLocationpath caskey pattern (locationpath ++ "/" ++ name) 
+                        ) caskeys
             -- [ IO ( Maybe [ Locationpath ] ) ]
 
         let array2 = sequence array1
@@ -52,34 +82,34 @@ extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObjectDirectory patt
 
         let array5 = concat array4
 
-        return $ Just array5
+        return $ Just ( [locationpath] ++ array5 )
 
 -- -----------------------------------------------------------
 
-extractLocationpathsForAionJsonObjectAndQuery :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionJsonObjectAndQuery aesonObject pattern current_path = 
+extractLocationpathsForAesonValueAndPatternAndLocationpath :: A.Value -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAesonValueAndPatternAndLocationpath aesonObject pattern locationpath = 
     if AesonObjectsUtils.aesonValueIsFile aesonObject
         then do
-            extractLocationpathsForAionJsonFileObjectAndQuery aesonObject pattern current_path
+            extractLocationpathsForAesonValueFileAndPatternAndLocationpath aesonObject pattern locationpath
         else do
-            extractLocationpathsForAionJsonDirectoryObjectAndQuery aesonObject pattern current_path
+            extractLocationpathsForAesonValueDirectoryAndPatternAndLocationpath aesonObject pattern locationpath
 
 -- -----------------------------------------------------------
 
--- extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath <aion cas hash> <search pattern> <current path>
+-- extractLocationpathsForAionCASKeyAndPatternAndLocationpath <aion cas hash> <search pattern> <current path>
 
-extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath :: String -> String -> String -> IO ( Maybe [ Locationpath ] )
-extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath _ "" _ = do
+extractLocationpathsForAionCASKeyAndPatternAndLocationpath :: String -> String -> String -> IO ( Maybe [ Locationpath ] )
+extractLocationpathsForAionCASKeyAndPatternAndLocationpath _ "" _ = do
     return $ Just []
-extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath aion_cas_hash pattern current_path = do
+extractLocationpathsForAionCASKeyAndPatternAndLocationpath aion_cas_hash pattern locationpath = do
     aionJSONValueAsString <- AesonObjectsUtils.getAesonJSONStringForCASKey aion_cas_hash
     if M.isJust aionJSONValueAsString
         then do
-            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonJSONObject $ M.fromJust aionJSONValueAsString
+            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue $ M.fromJust aionJSONValueAsString
             if M.isJust aionJSONValueMaybe
                 then do 
                     let aionJSONValue = M.fromJust aionJSONValueMaybe
-                    extractLocationpathsForAionJsonObjectAndQuery aionJSONValue pattern current_path 
+                    extractLocationpathsForAesonValueAndPatternAndLocationpath aionJSONValue pattern locationpath 
                 else
                     return Nothing    
         else do
@@ -89,5 +119,5 @@ extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath aion_cas_hash 
 
 runQueryAgainMerkleRootUsingStoredData :: String -> String -> String -> IO ( Maybe [ Locationpath ] )
 runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern = do
-    extractLocationpathsForAionCASHashAndQueryAndContextualFolderpath merkleroot pattern fsroot
+    extractLocationpathsForAionCASKeyAndPatternAndLocationpath merkleroot pattern fsroot
 
