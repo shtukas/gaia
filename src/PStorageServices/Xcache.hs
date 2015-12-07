@@ -78,7 +78,6 @@ set key value = do
     writeFile timestampfilepath $ show currenttime
     return ()
 
--- TODO: refactore to use `MaybeT IO String` and MonadPlus' guard
 get :: String -> IO ( Maybe Char8.ByteString )
 get key = do
     filepath <- keyToDataFilePath key
