@@ -66,6 +66,7 @@ executable gaia-utils
                      , system-filepath
                      , text
                      , time
+                     , transformers
                      , unix
                      , unordered-containers
                      , vector
@@ -89,6 +90,7 @@ executable gaia-web
                      , system-filepath
                      , text
                      , time
+                     , transformers
                      , unix
                      , unordered-containers
                      , vector
