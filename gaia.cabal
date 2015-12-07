@@ -27,6 +27,7 @@ library
                      , Gaia.SystemIntegrity
                      , Gaia.Types
                      , Gaia.UserPreferences
+                     , Nyx.Types
                      , PStorageServices.ContentAddressableStore
                      , PStorageServices.Xcache
                      , PStorageServices.Types

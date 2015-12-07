@@ -1,0 +1,236 @@
+
+# --------------------------------------------------------------------------------
+# Permanodes
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : 'nyx:permanode:generic-point-v1' 
+		"nyx:creation-datetime"           : (datetime)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : 'nyx:permanode:stream' 
+		"nyx:creation-datetime"           : (datetime)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : "nyx-fa9d57f6-6912-4e9a-89d2-f8a349874b67"
+		"lucille-energy-grid-object-type" : "nyx:permanode:text-point"
+		"nyx:creation-datetime"           : "2015-04-06T15:16:53+01:00"
+		"nyx:blobref"                     : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : "nyx-fa9d57f6-6912-4e9a-89d2-f8a349874b67"
+		"lucille-energy-grid-object-type" : "nyx:permanode:LaTeX-point"
+		"nyx:creation-datetime"           : "2015-04-06T15:16:53+01:00"
+		"nyx:blobref"                     : (string),
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : "nyx-ff4fadbf-bd18-477e-98a0-4f294d9a0ed4",
+		"lucille-energy-grid-object-type" : "nyx:permanode:html-point"
+		"nyx:creation-datetime"           : "2010-12-28 02:09:56"
+		"nyx:blobref"                     : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : 'nyx:permanode:file-point' 
+		"nyx:creation-datetime"           : (datetime)
+		"extension"                       : ".pdf", 
+		"nyx:blobrefs"                    : (string)(s)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : "nyx-06a9760a-4943-4a73-85d6-0c803714348c",
+		"lucille-energy-grid-object-type" : "nyx:permanode:url-point"
+		"nyx:creation-datetime"           : "2015-04-06T15:16:55+01:00"
+		"url"                             : "http://putlocker.is/watch-the-wolf-of-wall-street-online-free-putlocker.html"
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : 'nyx:permanode:email-address' 
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:email-address"               : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : 'nyx:permanode:line-of-text' 
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:text"                        : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : 'nyx:permanode:hyperlink' 
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:target:uuid"                 : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:permanode:aggregator:container"
+		"nyx:creation-datetime"           : (datetime)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:permanode:email-point"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:blobref"                     : (string)
+		"nyx:email-metadata" : {
+			"from"                : (string)
+			"to(s)"               : (string)(s)
+			"all-email-addresses" : (string)(s) 
+			"subject-line"        : (string)
+			"datetime"            : (datetime)
+			"unixtime"            : (integer)
+		}
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:permanode:aion-point"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:aion-hash"                   : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:permanode:forbidden-email-address"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:email-address"               : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:permanode:forbidden-email-domain"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:domain"                      : (string)
+	}
+
+# --------------------------------------------------------------------------------
+# Pins
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:pin:text"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:target:uuid"                 : (string)
+		"nyx:blobref"                     : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:pin:description"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:target:uuid"                 : (string)
+		"nyx:description"                 : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:pin:searchable"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:target:uuid"                 : (string)
+		"nyx:string"                      : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:pin:collection"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:target:uuid"                 : (string)
+		"nyx:collection:name"             : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:pin:comm-timeline:email-address"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:target:uuid"                 : (string)
+		"nyx:email-address"               : (string)
+	}
+
+# --------------------------------------------------------------------------------
+# Relations between Contents
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:relation:container-mapping-point"
+
+		"nyx:creation-datetime"           : (datetime)
+
+		"nyx:container:uuid"              : (string)
+		"nyx:target:uuid"                 : (string)
+		"nyx:ordinal"                     : (float)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:relation:taxinomy:1" # unordered children
+
+		"nyx:creation-datetime"           : (datetime)
+
+		"nyx:parent:uuid"                 : (string)
+		"nyx:child:uuid"                  : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:relation:taxinomy:2" # ordered children
+
+		"nyx:creation-datetime"           : (datetime)
+
+		"nyx:parent:uuid"                 : (string)
+		"nyx:child:uuid"                  : (string)
+		"nyx:ordinal"                     : (float)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:relation:superseder"
+
+		"nyx:creation-datetime"           : (datetime)
+
+		"nyx:old-version:uuid"            : (uuid)
+		"nyx:new-version:uuid"            : (uuid)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:relation:bi-directional-related-to"
+
+		"nyx:creation-datetime"           : (datetime)
+
+		"nyx:yin:uuid"                    : (uuid)
+		"nyx:yang:uuid"                   : (uuid)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:relation:strm-point"
+
+		"nyx:creation-datetime"           : (datetime)
+
+		"nyx:primary-object:uuid"         : (string)
+		"nyx:target:uuid"                 : (string)
+	}
+
+# --------------------------------------------------------------------------------
+# Relations for Display
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:display:container-should-hide-permanode"
+
+		"nyx:creation-datetime"           : (datetime)
+
+		"nyx:container:uuid"              : (string)
+		"nyx:target:uuid"                 : (string)	
+	}
+

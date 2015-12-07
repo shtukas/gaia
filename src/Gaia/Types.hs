@@ -16,7 +16,7 @@ data TAionPoint = TAionPointFile { name1 :: String
                                  , size1 :: Integer 
                                  , hash1 :: String } 
                 | TAionPointDirectory  { name2 :: String
-                                       , contents2 :: [String] } 
+                                       , contents2 :: [String] }                  
     deriving (Show) 
 
 -- -----------------------------------------------------------------------------
