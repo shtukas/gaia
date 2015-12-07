@@ -1,9 +1,9 @@
 module Gaia.UserPreferences where
 
-import           System.Directory as Dir
+import           System.Directory   as Dir
 import           System.Environment (getEnv)
-import           System.IO.Error (catchIOError, ioError, isDoesNotExistError)
-import qualified System.FilePath as FS
+import           System.FilePath    (normalise, (</>))
+import           System.IO.Error    (catchIOError, isDoesNotExistError)
 
 import           Gaia.Types
 
@@ -24,5 +24,5 @@ getFSRootsListingFilePath :: IO String
 getFSRootsListingFilePath = do
     folderpath <- Dir.getAppUserDataDirectory "gaia"
     ensureFolderPath folderpath
-    return $ FS.normalise $ FS.joinPath [folderpath, "FSRootsListing.txt"]
+    return $ normalise $ folderpath </> "FSRootsListing.txt"
 
