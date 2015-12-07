@@ -31,7 +31,7 @@ import qualified Data.Vector as V
 
 import qualified Data.Scientific as S
 
-type LocationPath = String
+import           Gaia.Types
 
 {-|
 
@@ -218,3 +218,46 @@ aesonValueForDirectoryGaiaProjection aValue =
                 Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
 
     in (foldername, contents)
+
+-- -----------------------------------------------------------------------------
+-- Because manipulating Aeson values in a little bit painful we are going to use 
+-- the datatypes we defined
+
+aesonValueToTAionPoint :: A.Value -> TAionPoint
+aesonValueToTAionPoint aesonvalue  
+    | aesonValueIsFile aesonvalue = 
+        let 
+            value1 = extractListOfPairsFromAesonValue aesonvalue [] -- [(T.Text ,A.Value)]
+
+            filename = 
+                case Prelude.lookup "name" value1 of
+                    Nothing -> "" 
+                    Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
+
+            filesize =
+                case Prelude.lookup "size" value1 of
+                    Nothing -> 0
+                    Just s1 -> extractUnderlyingIntegerFromAesonValueNumber s1 0
+
+            hash = 
+                case Prelude.lookup "hash" value1 of 
+                    Nothing -> ""
+                    Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""            
+
+        in TAionPointFile filename filesize hash
+    | otherwise = 
+        -- Here we make a leap of faith that if it's not a file it's a directory
+        let
+            value1 = extractListOfPairsFromAesonValue aesonvalue []
+
+            foldername = 
+                case Prelude.lookup "name" value1 of
+                    Nothing -> "" 
+                    Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 "" 
+
+            contents = 
+                case Prelude.lookup "contents" value1 of
+                    Nothing -> []
+                    Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []            
+        in TAionPointDirectory foldername contents
+

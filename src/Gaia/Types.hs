@@ -1,10 +1,25 @@
 module Gaia.Types where
 
--- Genreral File System
+-- -----------------------------------------------------------------------------
+-- General File System
 
 type FolderPath   = String
 type LocationPath = String
 
+-- -----------------------------------------------------------------------------
+-- Aion Points
+
+-- See http://stackoverflow.com/questions/24352280/multiple-declarations-of-x
+-- for why I use "unnatural" field names
+
+data TAionPoint = TAionPointFile { name1 :: String
+                                 , size1 :: Integer 
+                                 , hash1 :: String } 
+                | TAionPointDirectory  { name2 :: String
+                                       , contents2 :: [String] } 
+    deriving (Show) 
+
+-- -----------------------------------------------------------------------------
 -- Gaia Files
 
 type GaiaFileDirectiveBody = String

@@ -54,21 +54,22 @@ To run the web server do `stack exec gaia-web` (this command must be ran at the 
 The search is currently done by `gaia-utils run-query <pattern>`. In this commit it 
 
 - Peturns location paths that have the pattern as substring of a foldername or filename. 
-- Processes gaia files and read their tags.
+- Processes gaia files and read their tags. (For a detailed explanation of the current structure of gaia files, see documentation/gaia-files.md.)
 
 More to come in next commits...
 
 
 ## Todo
-- **In progress**: Allow users to specify the location of their Xcache repository. (Currently hardcoded to use the existing one on Pascal's computer.)
+- **Done**: Allow users to specify the location of their Xcache repository. (Currently hardcoded to use the existing one on Pascal's computer.)
 - **Done**: To be able to scan more than one location. 
-- Use the filepath package and its System.FilePath for multiplatform interfaces for file access.
+- **Done**: Use the filepath package and its System.FilePath for multiplatform interfaces for file access.
+- Make memoization of search engine logic
 - Provide a proper install script.
 
 ## Roadmap
 - **In progress**: Recovering the functionalities of Gaia-Genesis. 
 - **In progress**: Implementing the web server and have basic online search.
-- Developping the Directives functionality.
+- Develop the Directives functionality.
 - Reimplement all of Nyx in Gaia.
 	- Connection to the sqlite database. 
 	- etc.

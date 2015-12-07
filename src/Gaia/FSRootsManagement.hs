@@ -9,7 +9,7 @@ import qualified Gaia.UserPreferences as UP
 import qualified PStorageServices.Xcache as X
 import qualified Data.ByteString.Lazy.Char8 as Char8
 
-type LocationPath = String
+import           Gaia.Types
 
 -- --------------------------------------------------------------------------
 -- Managing ~/.gaia/FSRootsListing.txt
