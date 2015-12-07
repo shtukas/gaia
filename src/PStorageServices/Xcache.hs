@@ -9,6 +9,7 @@ import qualified Data.Time.Clock.POSIX as Time
 import qualified System.Directory as Dir
 import qualified Data.Maybe as M
 import qualified Gaia.UserPreferences as UP
+import qualified System.FilePath as FS
 
 type FolderPath = String
 
@@ -46,7 +47,7 @@ keyToDataFolderPath key =
         filename = keyToFilename key
         (fragment1, fragment2) = filenameToPathFragments filename
     in  UP.getXCacheRoot >>= \root ->
-        return $ root ++ "/datablobs/" ++ fragment1 ++ "/" ++ fragment2
+        return $ FS.normalise $ FS.joinPath [root, "datablobs", fragment1, fragment2]
 
 keyToTimestampFolderPath :: String -> IO FolderPath
 keyToTimestampFolderPath key =
@@ -54,19 +55,19 @@ keyToTimestampFolderPath key =
         filename = keyToFilename key
         (fragment1, fragment2) = filenameToPathFragments filename
     in  UP.getXCacheRoot >>= \root ->
-        return $ root ++ "/timestamps/" ++ fragment1 ++ "/" ++ fragment2
+        return $ FS.normalise $ FS.joinPath [root, "timestamps", fragment1, fragment2]
 
 keyToDataFilePath :: String -> IO FilePath
 keyToDataFilePath key = do
     folderpath <- keyToDataFolderPath key
     ensureFolderPath folderpath
-    return $ folderpath ++ "/" ++ keyToFilename key
+    return $ FS.normalise $ FS.joinPath [folderpath, keyToFilename key]
 
 keyToTimestampFilePath :: String -> IO FilePath
 keyToTimestampFilePath key = do
     folderpath <- keyToTimestampFolderPath key
     ensureFolderPath folderpath
-    return $ folderpath ++ "/" ++ keyToFilename key
+    return $ FS.normalise $ FS.joinPath [folderpath, keyToFilename key]
 
 set :: String -> Char8.ByteString -> IO ()
 set key value = do

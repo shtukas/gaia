@@ -126,7 +126,7 @@ extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObjectD
                                 name' <- casKeyToAionName caskey
                                 case name' of 
                                         Nothing   -> return Nothing
-                                        Just name -> extractLocationPathsForAionCASKeyAndPatternAndLocationPath caskey pattern (locationpath ++ "/" ++ name)
+                                        Just name -> extractLocationPathsForAionCASKeyAndPatternAndLocationPath caskey pattern (FS.normalise $ FS.joinPath [locationpath, name])
                         ) caskeys
             -- [ IO ( Maybe [ LocationPath ] ) ]
 

@@ -3,6 +3,7 @@ module Gaia.UserPreferences where
 import           System.Directory as Dir
 import           System.Environment (getEnv)
 import           System.IO.Error (catchIOError, ioError, isDoesNotExistError)
+import qualified System.FilePath as FS
 
 type FolderPath = String
 
@@ -19,5 +20,5 @@ getXCacheRoot = getEnvFailback "GAIAXCACHEROOT" xcacheRepositoryLegacyFolderPath
 getFSRootsListingFilePath :: IO String
 getFSRootsListingFilePath = do
     folderpath <- Dir.getAppUserDataDirectory "gaia"
-    return (folderpath ++ "/" ++ "FSRootsListing.txt")
+    return $ FS.normalise $ FS.joinPath [folderpath, "FSRootsListing.txt"]
 
