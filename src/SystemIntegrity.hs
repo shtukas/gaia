@@ -2,18 +2,19 @@ module SystemIntegrity where
 
 import qualified Data.Aeson as A
 import qualified AesonObjectsUtils
-import qualified Data.Maybe                 as M
 
 -- This function checks the Aion Tree below a CAS Key
 aionTreeFsckCASKey :: String -> IO Bool
 aionTreeFsckCASKey caskey = do
-    string <- AesonObjectsUtils.getAesonJSONStringForCASKey caskey
-    if M.isJust string
-        then do
-            let aesonValue = AesonObjectsUtils.convertJSONStringIntoAesonValue $ M.fromJust string
-            aionTreeFsckAesonValue $ M.fromJust aesonValue
-        else do
-            return False
+    string' <- AesonObjectsUtils.getAesonJSONStringForCASKey caskey
+    case string' of 
+        Nothing     -> return False
+        Just string -> do
+            let aesonValue' = AesonObjectsUtils.convertJSONStringIntoAesonValue string
+            case aesonValue' of
+                Nothing         -> return False
+                Just aesonValue -> aionTreeFsckAesonValue aesonValue
+            
 
 -- This function checks the Aion Tree below a Aeson Value
 aionTreeFsckAesonValue :: A.Value -> IO Bool

@@ -1,11 +1,10 @@
 module UserPreferences where
 
 import           System.Directory as Dir
-import           System.Environment         (getEnv)
-import           System.IO.Error            (catchIOError, ioError,
-                                             isDoesNotExistError)
+import           System.Environment (getEnv)
+import           System.IO.Error (catchIOError, ioError, isDoesNotExistError)
 
-type Filepath = String
+type Filepath   = String
 type Folderpath = String
 
 xcacheRepositoryLegacyFolderpath :: Folderpath

@@ -165,10 +165,10 @@ aesonValueIsFile :: A.Value -> Bool
 aesonValueIsFile aesonValue =
     let 
         value1 = extractListOfPairsFromAesonValue aesonValue
-        value2 = Prelude.lookup "aion-type" ( M.fromJust value1 )
-        value3 = M.fromJust value2
+        value2 = Prelude.lookup "aion-type" ( M.fromJust value1 ) -- TODO: The obvious thing....
+        value3 = M.fromJust value2 -- TODO: The obvious thing....
         value4 = extractUnderlyingTextFromAesonValueString value3
-        value5 = M.fromJust value4
+        value5 = M.fromJust value4 -- TODO: The obvious thing....
     in
         value5=="file"    
 
@@ -191,18 +191,18 @@ extractUnderlyingListOfStringsFromAesonValueVectorString _ = Nothing
 aesonValueForFileGaiaProjection :: A.Value -> ( String, Integer, String ) -- ( filename, filesize, sha1-shah )
 aesonValueForFileGaiaProjection aValue =
     let
-        value1 = extractListOfPairsFromAesonValue aValue                     -- [(T.Text ,A.Value)]
+        value1 = extractListOfPairsFromAesonValue aValue                          -- [(T.Text ,A.Value)]
 
-        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )         -- AesonValueString
-        value3 = M.fromJust $ extractUnderlyingTextFromAesonValueString value2     -- Text
+        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )         -- AesonValueString -- TODO: The obvious thing....
+        value3 = M.fromJust $ extractUnderlyingTextFromAesonValueString value2    -- Text
         filename = T.unpack value3                                                -- String
 
-        value4 = M.fromJust $ Prelude.lookup "size" ( M.fromJust value1 )         -- AesonValueNumber  
-        value5 = M.fromJust $ extractUnderlyingIntegerFromAesonValueNumber value4  -- Integer
+        value4 = M.fromJust $ Prelude.lookup "size" ( M.fromJust value1 )         -- AesonValueNumber -- TODO: The obvious thing.... 
+        value5 = M.fromJust $ extractUnderlyingIntegerFromAesonValueNumber value4 -- Integer
         filesize = value5
 
-        value6 = M.fromJust $ Prelude.lookup "hash" ( M.fromJust value1 )         -- AesonValueNumber  
-        value7 = M.fromJust $ extractUnderlyingTextFromAesonValueString value6     -- Integer
+        value6 = M.fromJust $ Prelude.lookup "hash" ( M.fromJust value1 )         -- AesonValueNumber -- TODO: The obvious thing....  
+        value7 = M.fromJust $ extractUnderlyingTextFromAesonValueString value6    -- Integer
         hash = T.unpack value7
 
     in (filename,filesize,hash)
@@ -211,12 +211,12 @@ aesonValueForDirectoryGaiaProjection :: A.Value -> ( String, [String] ) -- ( fol
 aesonValueForDirectoryGaiaProjection aValue =
     let
         value1 = extractListOfPairsFromAesonValue aValue
-        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 )
+        value2 = M.fromJust $ Prelude.lookup "name" ( M.fromJust value1 ) -- TODO: The obvious thing....
         value3 = M.fromJust $ extractUnderlyingTextFromAesonValueString value2
         foldername = T.unpack value3
 
-        value6 = M.fromJust $ Prelude.lookup "contents" ( M.fromJust value1 )                 -- AesonValueNumber  
-        value7 = M.fromJust $ extractUnderlyingListOfStringsFromAesonValueVectorString value6  -- [String]
+        value6 = M.fromJust $ Prelude.lookup "contents" ( M.fromJust value1 )                  -- AesonValueNumber -- TODO: The obvious thing....  
+        value7 = M.fromJust $ extractUnderlyingListOfStringsFromAesonValueVectorString value6  -- [String] -- TODO: The obvious thing....
         contents = value7
 
     in (foldername, contents)

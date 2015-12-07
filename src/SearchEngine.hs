@@ -61,7 +61,10 @@ shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf ( map (\c -
 
 -- -----------------------------------------------------------
 
--- The two below functions are temporary
+{-
+	The two below functions are temporary
+	TODO: Update them 
+-}
 
 stringToFSFilepath :: String -> FilePath
 stringToFSFilepath locationpath = locationpath -- decodeString "" locationpath 
@@ -190,18 +193,15 @@ extractLocationpathsForAionCASKeyAndPatternAndLocationpath :: String -> String -
 extractLocationpathsForAionCASKeyAndPatternAndLocationpath _ "" _ = do
     return $ Just []
 extractLocationpathsForAionCASKeyAndPatternAndLocationpath aion_cas_hash pattern locationpath = do
-    aionJSONValueAsString <- AesonObjectsUtils.getAesonJSONStringForCASKey aion_cas_hash
-    if M.isJust aionJSONValueAsString
-        then do
-            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue $ M.fromJust aionJSONValueAsString
-            if M.isJust aionJSONValueMaybe
-                then do 
-                    let aionJSONValue = M.fromJust aionJSONValueMaybe
-                    extractLocationpathsForAesonValueAndPatternAndLocationpath aionJSONValue pattern locationpath 
-                else
-                    return Nothing    
-        else do
-            return Nothing
+    aionJSONValueAsString' <- AesonObjectsUtils.getAesonJSONStringForCASKey aion_cas_hash
+    case aionJSONValueAsString' of
+    	Nothing                    -> return Nothing
+    	Just aionJSONValueAsString -> do
+            let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue aionJSONValueAsString
+            case aionJSONValueMaybe of
+            	Nothing                 -> return Nothing 
+            	Just aionJSONValue -> do  
+                    extractLocationpathsForAesonValueAndPatternAndLocationpath aionJSONValue pattern locationpath
 
 -- -----------------------------------------------------------
 

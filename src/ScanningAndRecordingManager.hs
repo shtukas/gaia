@@ -122,11 +122,11 @@ commitMerkleRootForFSScanRoot fsscanlocationpath merkleroot = do
 
 getCurrentMerkleRootForFSScanRoot :: String -> IO ( Maybe String )
 getCurrentMerkleRootForFSScanRoot locationpath = do
-	bytes <- Xcache.get (FSRootsManagement.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
-	case bytes of 
-		Nothing 	-> return $ Nothing 
-		Just bytes' -> return $ Just ( Char8.unpack bytes' )
-	
+    bytes <- Xcache.get (FSRootsManagement.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
+    case bytes of 
+        Nothing     -> return $ Nothing 
+        Just bytes' -> return $ Just ( Char8.unpack bytes' )
+
 
 -- ---------------------------------------------------------------
 
@@ -136,14 +136,12 @@ generalScan = do
     _ <- sequence $ map (\scanroot -> 
                             do
                                 s1 <- computeMerkleRootForLocationRecursivelyComputedaAndStored scanroot 
-                                -- s1: Maybe String
-                                if M.isJust s1 
-                                    then do
-                                        putStrLn $ "location: "++scanroot
-                                        putStrLn $ "merkle  : "++(M.fromJust s1) 
-                                        commitMerkleRootForFSScanRoot scanroot (M.fromJust s1)
-                                    else do
-                                        return ()
+                                case s1 of 
+                                    Nothing -> return ()
+                                    Just s2 -> do
+                                        putStrLn $ "location: " ++ scanroot
+                                        putStrLn $ "merkle  : " ++ s2 
+                                        commitMerkleRootForFSScanRoot scanroot s2
                          ) scanroots
     return ()
 

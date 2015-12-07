@@ -39,11 +39,9 @@ doTheThing1 args
         _ <- sequence $ map ( \scanroot -> do 
                             putStrLn $ "location: "++scanroot
                             merkle <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
-                            if M.isJust merkle
-                                then do
-                                    putStrLn $ "merkle  : "++(M.fromJust merkle) 
-                                else
-                                    putStrLn "merkle  : Unknown!"
+                            case merkle of
+                                Nothing      -> putStrLn "merkle  : Unknown!"
+                                Just merkle' -> putStrLn $ "merkle  : " ++ merkle'
                        ) scanroots
         return ()
 
@@ -51,8 +49,8 @@ doTheThing1 args
         let key = ( head $ drop 1 args )
         string <- ContentAddressableStore.get key
         case string of 
-        	Nothing      -> putStrLn "error: Could not retrive data for this key"
-        	Just string' -> putStrLn $ Char8.unpack string' 
+            Nothing      -> putStrLn "error: Could not retrive data for this key"
+            Just string' -> putStrLn $ Char8.unpack string' 
 
     | ( (head args) == "expose-aeson-object" ) && ( length args >= 2 ) = do
         let aion_cas_hash = ( head $ drop 1 args )
@@ -65,10 +63,8 @@ doTheThing1 args
                     else do 
                         let aionJSONValueMaybe = AesonObjectsUtils.convertJSONStringIntoAesonValue ( Char8.unpack aionJSONValueAsString' ) 
                         case aionJSONValueMaybe of
-                            Nothing -> putStrLn "I could not convert the record to a Aeson Object"  
-                            Just aionJSONValue -> do 
-                                let aionJSONValue = M.fromJust aionJSONValueMaybe
-                                putStrLn $ show aionJSONValue 
+                            Nothing            -> putStrLn "I could not convert the record to a Aeson Object"  
+                            Just aionJSONValue -> putStrLn $ show aionJSONValue
 
     | ( (head args) == "run-query" ) && ( length args >= 2 ) = do
         let pattern = ( head $ drop 1 args )
@@ -76,19 +72,16 @@ doTheThing1 args
         _ <- sequence $ map ( \scanroot -> do 
                             putStrLn scanroot
                             merkleroot <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
-                            if M.isJust merkleroot
-                                then do
-                                    locationpaths <- SearchEngine.runQueryAgainMerkleRootUsingStoredData scanroot ( M.fromJust merkleroot ) pattern -- IO ( Maybe [ Locationpath ] )
-                                    -- Maybe [ Locationpath ]
-                                    if M.isJust locationpaths
-                                        then do 
-                                            let folderpaths = M.fromJust locationpaths
+                            case merkleroot of 
+                                Nothing          -> putStrLn "error: Could not retrieve Merkle root for this location"
+                                Just merkleroot' -> do
+                                    locationpaths' <- SearchEngine.runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ Locationpath ] )
+                                    case locationpaths' of
+                                        Nothing            -> putStrLn "error: Query has failed (for some reasons...)"
+                                        Just locationpaths -> do 
+                                            let folderpaths = locationpaths
                                             _ <- sequence $ map (\folderpath -> putStrLn ( "    " ++ folderpath)) folderpaths
                                             return ()
-                                        else 
-                                            putStrLn "error: Query has failed (for some reasons...)"
-                                else
-                                    putStrLn "error: Could not retrieve Merkle root for this location"
 
                        ) scanroots
         return ()
@@ -97,15 +90,14 @@ doTheThing1 args
         scanroots <- FSRootsManagement.getFSScanRoots
         _ <- sequence $ map ( \scanroot -> do 
                             putStrLn scanroot
-                            merkleroot <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
-                            if M.isJust merkleroot
-                                then do
-                                    bool <- SystemIntegrity.aionTreeFsckCASKey ( M.fromJust merkleroot )
+                            merkleroot' <- ScanningAndRecordingManager.getCurrentMerkleRootForFSScanRoot scanroot
+                            case merkleroot' of 
+                                Nothing         -> putStrLn "error: Could not retrieve Merkle root for this location"
+                                Just merkleroot -> do
+                                    bool <- SystemIntegrity.aionTreeFsckCASKey merkleroot
                                     if bool
                                         then putStrLn "Aion Tree is correct"
                                         else putStrLn "error: Aion Tree does not check out"
-                                else
-                                    putStrLn "error: Could not retrieve Merkle root for this location"
 
                        ) scanroots
         return ()
