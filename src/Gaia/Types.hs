@@ -1,6 +1,5 @@
 module Gaia.Types where
 
-
 type DirectiveBody = String
 data DirectiveTag  = Tag        -- | NewTag1 | NewTag2 ...
                      deriving (Eq, Show)

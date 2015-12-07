@@ -2,7 +2,7 @@
 
 module FSRootsManagement where
 
-import System.Directory as Dir
+import           System.Directory as Dir
 import qualified Data.List
 import qualified Data.Text
 import qualified UserPreferences

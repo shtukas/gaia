@@ -22,9 +22,9 @@ import qualified Data.Char as C
 
 import qualified Gaia.Directives as GD
 
-import Filesystem.Path (directory)
+import           Filesystem.Path (directory)
 
-import Filesystem.Path.Rules
+import           Filesystem.Path.Rules
     -- encodeString :: Rules platformFormat -> FilePath -> String
     -- decodeString :: Rules platformFormat -> String -> FilePath
 
