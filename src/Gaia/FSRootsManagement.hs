@@ -2,12 +2,12 @@
 
 module Gaia.FSRootsManagement where
 
-import           System.Directory as Dir
+import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.List
 import qualified Data.Text
 import qualified Gaia.UserPreferences as UP
 import qualified PStorageServices.Xcache as X
-import qualified Data.ByteString.Lazy.Char8 as Char8
+import           System.Directory as Dir
 
 import           Gaia.Types
 

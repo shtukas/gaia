@@ -6,35 +6,25 @@ module Gaia.ScanningAndRecordingManager (
     generalScan
 ) where
 
-import qualified Data.Aeson as A
+import qualified Data.Aeson                 as A
     -- JSON library
     -- A.encode :: A.ToJSON a => a -> Char8.ByteString
-
-import qualified Data.Text as T
-    -- T.pack :: String -> T.Text
-
-import qualified System.Directory as Dir
-    -- doesDirectoryExist :: FilePath -> IO Bool
-    -- getDirectoryContents :: FilePath -> IO [FilePath]
-
-import           System.FilePath
-    -- takeFileName :: FilePath -> FilePath
-
-import           System.Posix
-
 import qualified Data.ByteString.Lazy.Char8 as Char8
     -- Char8.pack :: [Char] -> Char8.ByteString
     -- Char8.readFile :: FilePath -> IO Char8.ByteString
-
-import qualified Gaia.AesonObjectsUtils as GAOU
-
-import qualified Gaia.FSRootsManagement as FSRM
-
-import qualified PStorageServices.Xcache as X
-
-import qualified Data.Maybe as M
-
+import qualified Data.Text                  as T
+    -- T.pack :: String -> T.Text
+import qualified Gaia.AesonObjectsUtils     as GAOU
+import qualified Gaia.FSRootsManagement     as FSRM
 import           Gaia.Types
+import qualified PStorageServices.Xcache    as X
+import qualified System.Directory           as Dir
+    -- doesDirectoryExist :: FilePath -> IO Bool
+    -- getDirectoryContents :: FilePath -> IO [FilePath]
+import           System.FilePath
+    -- takeFileName :: FilePath -> FilePath
+import           System.Posix               (FileOffset, fileSize,
+                                             getFileStatus)
 
 -- ---------------------------------------------------------------
 
@@ -88,8 +78,8 @@ filepathToAesonJSONValue filepath = do
 folderpathToAesonJSONValue :: FolderPath -> IO A.Value
 folderpathToAesonJSONValue folderpath = do
     directoryContents <- Dir.getDirectoryContents folderpath
-    aesonvalues <- mapM (\filename -> locationToAesonJSONVAlueRecursivelyComputedaAndStored $ folderpath ++ "/" ++ filename)
-                       (excludeDotFolders directoryContents)
+    aesonvalues <- mapM (\filename -> locationToAesonJSONVAlueRecursivelyComputedaAndStored $ folderpath </> filename)
+                        (excludeDotFolders directoryContents)
     caskeys <- mapM GAOU.commitAesonValueToCAS aesonvalues
     let aesonvalues2 = map (A.String . T.pack) caskeys
     return $ GAOU.makeAesonValueForDirectory (getLocationName folderpath) aesonvalues2
@@ -120,8 +110,8 @@ commitMerkleRootForFSScanRoot fsscanlocationpath merkleroot = do
 getCurrentMerkleRootForFSScanRoot :: String -> IO ( Maybe String )
 getCurrentMerkleRootForFSScanRoot locationpath = do
     bytes <- X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
-    case bytes of 
-        Nothing     -> return $ Nothing 
+    case bytes of
+        Nothing     -> return Nothing
         Just bytes' -> return $ Just ( Char8.unpack bytes' )
 
 
@@ -130,16 +120,15 @@ getCurrentMerkleRootForFSScanRoot locationpath = do
 generalScan :: IO ()
 generalScan = do
     scanroots <- FSRM.getFSScanRoots
-    _ <- sequence $ map (\scanroot -> 
-                            do
-                                s1 <- computeMerkleRootForLocationRecursivelyComputedaAndStored scanroot 
-                                case s1 of 
-                                    Nothing -> return ()
-                                    Just s2 -> do
-                                        putStrLn $ "location: " ++ scanroot
-                                        putStrLn $ "merkle  : " ++ s2 
-                                        commitMerkleRootForFSScanRoot scanroot s2
-                         ) scanroots
+    _ <- mapM (\scanroot -> do
+                    s1 <- computeMerkleRootForLocationRecursivelyComputedaAndStored scanroot
+                    case s1 of
+                        Nothing -> return ()
+                        Just s2 -> do
+                            putStrLn $ "location: " ++ scanroot
+                            putStrLn $ "merkle  : " ++ s2
+                            commitMerkleRootForFSScanRoot scanroot s2
+               ) scanroots
     return ()
 
 
