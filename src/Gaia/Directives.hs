@@ -3,13 +3,17 @@ module Gaia.Directives(
   GaiaFileDirectiveTag,
   GaiaFileDirective(..),
   parseDirectives,
-  parseDirectivesFile
+  parseDirectivesFile,
+  checkDirectivesFile
 ) where
 
+import           Control.Monad
+import           Control.Monad.Trans.Maybe
 import           Gaia.Types
-
 import           Text.Parsec            (alphaNum, char, many, newline, parse,
                                          try, (<|>))
+--  parse :: Parser a -> SourceName -> String -> Either ParseError a
+--  I leave it here in case we decide to go back to Error messages and EitherT
 import           Text.Parsec.Char       (anyChar, string)
 import           Text.Parsec.Combinator (many1, manyTill)
 import           Text.Parsec.Error      (ParseError)
@@ -58,10 +62,27 @@ directives  = do
                 _ <- ignorable
                 return d
 
+-- ERROR MANAGEMENT
+hush :: Either a b -> Maybe b
+hush = either (const Nothing) Just
+
+hsuh :: Either a b -> Maybe a
+hsuh = either Just (const Nothing)
 
 -- DIRECTIVES PARSER
-parseDirectives :: String -> Either ParseError [GaiaFileDirective]
-parseDirectives  = parse directives ""
+parseDirectives :: String -> Maybe [GaiaFileDirective]
+parseDirectives str = hush (parse directives "" str)
 
-parseDirectivesFile :: FilePath -> IO (Either ParseError [GaiaFileDirective])
-parseDirectivesFile  = parseFromFile directives
+parseDirectivesFile :: FilePath -> MaybeT IO [GaiaFileDirective]
+parseDirectivesFile filepath = do
+    directs <- MaybeT $ liftM hush eitherDirectives
+    return directs
+    where
+        eitherDirectives = parseFromFile directives filepath
+
+checkDirectivesFile :: FilePath -> MaybeT IO ParseError
+checkDirectivesFile filepath = do
+  errors <- MaybeT $ liftM hsuh eitherDirectives
+  return errors 
+  where 
+    eitherDirectives = (parseFromFile directives filepath)

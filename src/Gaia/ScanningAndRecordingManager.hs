@@ -6,6 +6,7 @@ module Gaia.ScanningAndRecordingManager (
     generalScan
 ) where
 
+import           Control.Monad.Trans.Maybe
 import qualified Data.Aeson                 as A
     -- JSON library
     -- A.encode :: A.ToJSON a => a -> Char8.ByteString
@@ -107,12 +108,10 @@ commitMerkleRootForFSScanRoot :: String -> String -> IO ()
 commitMerkleRootForFSScanRoot fsscanlocationpath merkleroot = do
     X.set (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan fsscanlocationpath) ( Char8.pack merkleroot )
 
-getCurrentMerkleRootForFSScanRoot :: String -> IO ( Maybe String )
+getCurrentMerkleRootForFSScanRoot :: String -> MaybeT IO String
 getCurrentMerkleRootForFSScanRoot locationpath = do
-    bytes <- X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
-    case bytes of
-        Nothing     -> return Nothing
-        Just bytes' -> return $ Just ( Char8.unpack bytes' )
+    bytes <- MaybeT $ X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
+    return $ Char8.unpack bytes
 
 
 -- ---------------------------------------------------------------

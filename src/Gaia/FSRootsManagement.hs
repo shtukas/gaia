@@ -2,6 +2,7 @@
 
 module Gaia.FSRootsManagement where
 
+import           Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.List
 import qualified Data.Text
@@ -87,12 +88,10 @@ getFSScanRoots = do
 xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan :: LocationPath -> String
 xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath = "f9c43482-2ae6-4ecc-be23-d4b1f0c7c85d:"++locationpath
 
-merkleRootForFSRootScan :: LocationPath -> IO ( Maybe String )
+merkleRootForFSRootScan :: LocationPath -> MaybeT IO String
 merkleRootForFSRootScan locationpath = do
     let xcachekey = xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath
-    merkleroot <- X.get xcachekey 
-    case merkleroot of 
-        Nothing   -> return Nothing
-        Just root -> return $ Just ( Char8.unpack root )
+    merkleroot <- MaybeT $ X.get xcachekey 
+    return $ Char8.unpack merkleroot
 
 

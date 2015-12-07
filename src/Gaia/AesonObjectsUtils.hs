@@ -5,6 +5,7 @@ module Gaia.AesonObjectsUtils where
 
 -- This module concentrates utility functions to facilitate the reading of Aeson Objects
 
+import           Control.Monad.Trans.Maybe
 import qualified Data.Aeson as A
     -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
 import qualified Data.ByteString.Lazy.Char8 as Char8
@@ -84,12 +85,10 @@ import           Gaia.Types
 -- Getting JSON Strings From Storage
 -- -----------------------------------------------------------
 
-getAesonJSONStringForCASKey :: String -> IO ( Maybe String )
+getAesonJSONStringForCASKey :: String -> MaybeT IO String
 getAesonJSONStringForCASKey hash = do
-    value <- CAS.get hash
-    case value of 
-        Nothing     -> return Nothing
-        Just string -> return $ Just ( Char8.unpack string )
+    string <- MaybeT $ CAS.get hash
+    return $ Char8.unpack string
 
 -- -----------------------------------------------------------
 -- Building Aeson Values
@@ -235,6 +234,8 @@ aesonValueToTAionPoint aesonvalue
         in TAionPointFile filename filesize hash
     | otherwise = 
         -- Here we make a leap of faith that if it's not a file it's a directory
+        -- TODO: understand if is worth to move it to Either or Maybe with a 
+        --       check isDirectory or simply brutally panic if not a directory :P
         let
             value1 = extractListOfPairsFromAesonValue aesonvalue []
 
