@@ -71,7 +71,7 @@ casKeyToAionName key = do
                             return $ Just ( name1 tap )
                         else do
                             let tap = GAOU.aesonValueToTAionPoint aesonValue'
-                            return $ Just ( name1 tap )
+                            return $ Just ( name2 tap )
 
 -- -----------------------------------------------------------
 
