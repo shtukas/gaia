@@ -140,14 +140,11 @@ extractUnderlyingListOfStringsFromAesonValueVectorString _ defaultvalue = defaul
 
 aesonValueIsFile :: A.Value -> Bool
 aesonValueIsFile aesonValue =
-    let
-        value1 = extractListOfPairsFromAesonValue aesonValue []
-        answer = case lookup "aion-type" value1 of
-            Nothing     -> False
-            Just value3 -> ( extractUnderlyingTextFromAesonValueString value3 "" )=="file"
-    in
-        answer
-
+    let v = extractListOfPairsFromAesonValue aesonValue [] in
+    case lookup "aion-type" v of
+        Nothing     -> False
+        Just v' -> ( extractUnderlyingTextFromAesonValueString v' "" )=="file"
+    
 aesonValueToTAionPoint :: A.Value -> TAionPoint
 aesonValueToTAionPoint aesonvalue
     | aesonValueIsFile aesonvalue =

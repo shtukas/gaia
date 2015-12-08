@@ -30,8 +30,8 @@ import qualified System.FilePath                          as FS
 
 -- -----------------------------------------------------------
 
-shouldRetainThisLocationPath :: LocationPath -> String -> Bool
-shouldRetainThisLocationPath locationpath pattern = pattern `D.isInfixOf` locationpath
+--shouldRetainThisLocationPath :: LocationPath -> String -> Bool
+--shouldRetainThisLocationPath locationpath pattern = pattern `D.isInfixOf` locationpath
 
 -- *AesonObjectsUtils> Gaia.Directives.parseDirectivesFile "/Users/pascal/Desktop/Gifs/gaia"
 -- Right [Tag -> "Use the force, Luke"]
