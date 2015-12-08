@@ -62,6 +62,8 @@ casKeyToAionName key = do
     let aesonValue = GAOU.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString)
     returnAppropriateName aesonValue
     where
+        returnAppropriateName :: Maybe A.Value -> MaybeT IO String
+        returnAppropriateName Nothing = mzero
         returnAppropriateName (Just aesonValue) = 
             let tap = GAOU.aesonValueToTAionPoint aesonValue in 
             let name = if GAOU.aesonValueIsFile aesonValue then name1 tap else name2 tap in
