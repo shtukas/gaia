@@ -6,11 +6,10 @@ import           Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.List
 import qualified Data.Text
-import qualified Gaia.UserPreferences       as UP
-import qualified PStorageServices.Xcache    as X
-import           System.Directory           as Dir
-
 import           Gaia.Types
+import qualified Gaia.UserPreferences as UP
+import qualified PStorageServices.Xcache as X
+import           System.Directory as Dir
 
 -- --------------------------------------------------------------------------
 -- Managing ~/.gaia/FSRootsListing.txt

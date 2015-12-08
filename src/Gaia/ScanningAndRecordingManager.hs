@@ -7,23 +7,15 @@ module Gaia.ScanningAndRecordingManager (
 ) where
 
 import           Control.Monad.Trans.Maybe
-import qualified Data.Aeson                 as A
-    -- JSON library
-    -- A.encode :: A.ToJSON a => a -> Char8.ByteString
+import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy.Char8 as Char8
-    -- Char8.pack :: [Char] -> Char8.ByteString
-    -- Char8.readFile :: FilePath -> IO Char8.ByteString
-import qualified Data.Text                  as T
-    -- T.pack :: String -> T.Text
-import qualified Gaia.AesonObjectsUtils     as GAOU
-import qualified Gaia.FSRootsManagement     as FSRM
+import qualified Data.Text as T
+import qualified Gaia.AesonObjectsUtils as GAOU
+import qualified Gaia.FSRootsManagement as FSRM
 import           Gaia.Types
-import qualified PStorageServices.Xcache    as X
-import qualified System.Directory           as Dir
-    -- doesDirectoryExist :: FilePath -> IO Bool
-    -- getDirectoryContents :: FilePath -> IO [FilePath]
+import qualified PStorageServices.Xcache as X
+import qualified System.Directory as Dir
 import           System.FilePath
-    -- takeFileName :: FilePath -> FilePath
 import           System.Posix               (FileOffset, fileSize,
                                              getFileStatus)
 

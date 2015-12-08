@@ -6,19 +6,15 @@ module Gaia.AesonObjectsUtils where
 -- This module concentrates utility functions to facilitate the reading of Aeson Objects
 
 import           Control.Monad.Trans.Maybe
-import qualified Data.Aeson                               as A
-    -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
-import qualified Data.ByteString.Lazy.Char8               as Char8
-import qualified Data.Digest.Pure.SHA                     as SHA
-    -- SHA.sha1 :: Char8.ByteString -> Digest SHA1State
-    -- SHA.showDigest :: Digest t -> String
-import qualified Data.HashMap.Strict                      as HM
-import qualified Data.Scientific                          as S
-import qualified Data.Text                                as T
-import qualified Data.Vector                              as V
-import qualified GHC.Exts                                 as E
-    -- support for the JSON library
+import qualified Data.Aeson as A
+import qualified Data.ByteString.Lazy.Char8 as Char8
+import qualified Data.Digest.Pure.SHA as SHA
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Scientific as S
+import qualified Data.Text as T
+import qualified Data.Vector as V
 import           Gaia.Types
+import qualified GHC.Exts as E -- support for the JSON library (Aeson)
 import qualified PStorageServices.ContentAddressableStore as CAS
 
 -- -----------------------------------------------------------

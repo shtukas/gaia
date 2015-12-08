@@ -5,10 +5,10 @@ module PStorageServices.Xcache (
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import           Data.Digest.Pure.SHA as SHA
-import qualified Data.Time.Clock.POSIX as Time
-import qualified System.Directory as Dir
 import qualified Data.Maybe as M
+import qualified Data.Time.Clock.POSIX as Time
 import qualified Gaia.UserPreferences as UP
+import qualified System.Directory as Dir
 import qualified System.FilePath as FS
 
 import           PStorageServices.Types

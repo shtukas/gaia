@@ -8,16 +8,16 @@ module Gaia.SearchEngine (
 
 import           Control.Monad
 import           Control.Monad.Trans.Maybe
-import qualified Data.Aeson                               as A
+import qualified Data.Aeson as A
     -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
-import qualified Data.ByteString.Lazy.Char8               as Char8
-import qualified Data.List                                as D
-import qualified Gaia.AesonObjectsUtils                   as GAOU
-import qualified Gaia.Directives                          as GD
-import qualified Gaia.GeneralUtils                        as GU
+import qualified Data.ByteString.Lazy.Char8 as Char8
+import qualified Data.List as D
+import qualified Gaia.AesonObjectsUtils as GAOU
+import qualified Gaia.Directives as GD
+import qualified Gaia.GeneralUtils as GU
 import           Gaia.Types
 import qualified PStorageServices.ContentAddressableStore as CAS
-import qualified System.FilePath                          as FS
+import qualified System.FilePath as FS
 
 -- -----------------------------------------------------------
 

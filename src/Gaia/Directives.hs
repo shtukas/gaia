@@ -10,14 +10,14 @@ module Gaia.Directives(
 import           Control.Monad
 import           Control.Monad.Trans.Maybe
 import           Gaia.Types
-import           Text.Parsec               (alphaNum, char, many, newline,
-                                            parse, try, (<|>))
+import           Text.Parsec (alphaNum, char, many, newline,
+                                parse, try, (<|>))
 --  parse :: Parser a -> SourceName -> String -> Either ParseError a
 --  I leave it here in case we decide to go back to Error messages and EitherT
-import           Text.Parsec.Char          (anyChar, string)
-import           Text.Parsec.Combinator    (many1, manyTill)
-import           Text.Parsec.Error         (ParseError)
-import           Text.Parsec.String        (Parser, parseFromFile)
+import           Text.Parsec.Char (anyChar, string)
+import           Text.Parsec.Combinator (many1, manyTill)
+import           Text.Parsec.Error (ParseError)
+import           Text.Parsec.String (Parser, parseFromFile)
 
 -- NOTES
 -- - to print UTF-8 character we cannot use putStr but instead we

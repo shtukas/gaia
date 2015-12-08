@@ -1,7 +1,7 @@
 module Gaia.SystemIntegrity where
 
 import           Control.Monad.Trans.Maybe
-import qualified Gaia.AesonObjectsUtils    as GAOU
+import qualified Gaia.AesonObjectsUtils as GAOU
 import           Gaia.Types
 
 -- This function checks the Aion Tree below a CAS Key

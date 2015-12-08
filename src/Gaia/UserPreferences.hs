@@ -1,11 +1,10 @@
 module Gaia.UserPreferences where
 
-import           System.Directory   as Dir
-import           System.Environment (getEnv)
-import           System.FilePath    (normalise, (</>))
-import           System.IO.Error    (catchIOError, isDoesNotExistError)
-
 import           Gaia.Types
+import           System.Directory as Dir
+import           System.Environment (getEnv)
+import           System.FilePath (normalise, (</>))
+import           System.IO.Error (catchIOError, isDoesNotExistError)
 
 xcacheRepositoryLegacyFolderPath :: FolderPath
 xcacheRepositoryLegacyFolderPath = "/x-space/xcache-v2"

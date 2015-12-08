@@ -3,10 +3,9 @@ module PStorageServices.ContentAddressableStore (
     get
 ) where
 
-import qualified PStorageServices.Xcache as X
 import qualified Data.ByteString.Lazy.Char8 as Char8
-import           Data.Digest.Pure.SHA       as SHA
-
+import           Data.Digest.Pure.SHA as SHA
+import qualified PStorageServices.Xcache as X
 
 makeKeyForValue :: Char8.ByteString -> String
 makeKeyForValue bytestring = 
