@@ -10,8 +10,10 @@ import qualified Gaia.SystemIntegrity as SI
 import qualified PStorageServices.ContentAddressableStore as CAS
 import           System.Environment
 
+
 printHelp :: IO ()
 printHelp = do
+    putStrLn ""
     putStrLn "    usage: gaia-utils general-scan"
     putStrLn "    usage: gaia-utils get-merkle-roots"
     putStrLn "    usage: gaia-utils cas-get <key>"
@@ -22,114 +24,131 @@ printHelp = do
     putStrLn "    usage: gaia-utils print-fs-roots"
     putStrLn "    usage: gaia-utils add-fs-root <locationpath>"
     putStrLn "    usage: gaia-utils remove-fs-root <locationpath>"
+    putStrLn ""
 
 doTheThing1 :: [String] -> IO ()
 doTheThing1 args
-
-    | null args = do
-        putStrLn ""
-        printHelp
-        putStrLn ""
-
-    | head args == "general-scan" = do
-        SRM.generalScan
-
-    | head args == "get-merkle-roots" = do
-        scanroots <- FSM.getFSScanRoots
-        _ <- mapM ( \scanroot -> do
-                        putStrLn $ "location: "++scanroot
-                        merkle <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
-                        case merkle of
-                            Nothing      -> putStrLn "merkle  : Unknown!"
-                            Just merkle' -> putStrLn $ "merkle  : " ++ merkle'
-                    ) scanroots
-        return ()
-
-    | ( head args == "cas-get" ) && ( length args >= 2 ) = do
-        let key = args !! 1
-        string <- CAS.get key
-        case string of
-            Nothing      -> putStrLn "error: Could not retrive data for this key"
-            Just string' -> putStrLn $ Char8.unpack string'
-
-    | ( head args == "expose-aeson-object" ) && ( length args >= 2 ) = do
-        let aion_cas_hash = args !! 1
-        aionJSONValueAsString <- CAS.get aion_cas_hash
-        case aionJSONValueAsString of
-            Nothing                     -> putStrLn "error: Could not retrive data for this key"
-            Just aionJSONValueAsString' ->
-                if ( length $ Char8.unpack aionJSONValueAsString' ) == 0
-                    then putStrLn "I could not find a Content Addressable Store record"
-                    else do
-                        let aionJSONValueMaybe = AOU.convertJSONStringIntoAesonValue ( Char8.unpack aionJSONValueAsString' )
-                        case aionJSONValueMaybe of
-                            Nothing            -> putStrLn "I could not convert the record to a Aeson Object"
-                            Just aionJSONValue -> print aionJSONValue
-
-    | ( head args == "run-query" ) && ( length args >= 2 ) = do
-        let pattern = args !! 1
-        scanroots <- FSM.getFSScanRoots
-        _ <- mapM ( \scanroot -> do
-                        putStrLn scanroot
-                        merkleroot <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
-                        case merkleroot of
-                            Nothing          -> putStrLn "error: Could not retrieve Merkle root for this location"
-                            Just merkleroot' -> do
-                                locationpaths' <- runMaybeT $ SE.runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
-                                case locationpaths' of
-                                    Nothing            -> putStrLn "error: Query has failed (for some reasons...)"
-                                    Just locationpaths -> do
-                                        let folderpaths = locationpaths -- this is a redundant allocation, I am for getting rid of it
-                                        _ <- mapM (\folderpath -> putStrLn ("    " ++ folderpath)) folderpaths
-                                        return ()
-
-                    ) scanroots
-        return ()
-
-    | head args == "fsck" = do
-        scanroots <- FSM.getFSScanRoots
-        _ <- mapM ( \scanroot -> do
-                        putStrLn scanroot
-                        merkleroot' <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
-                        case merkleroot' of
-                            Nothing         -> putStrLn "error: Could not retrieve Merkle root for this location"
-                            Just merkleroot -> do
-                                bool <- SI.aionTreeFsckCASKey merkleroot
-                                if bool
-                                    then putStrLn "Aion Tree is correct"
-                                    else putStrLn "error: Aion Tree does not check out"
-
-                    ) scanroots
-        return ()
-
-    | head args == "status-report" = do
-        roots <- FSM.getFSScanRoots
-        putStr "FS Scan Root file has "
-        putStr $ show $ length roots
-        putStrLn " elements"
-
-    | head args == "print-fs-roots" = do
-        FSM.printFSRootsListing
-
-    | ( head args == "add-fs-root" ) && ( length args >= 2 ) = do
-        let fsroot = args !! 1
-        FSM.addFSRoot fsroot
-
-    | ( head args == "remove-fs-root" ) && ( length args >= 2 ) = do
-        let fsroot = args !! 1
-        FSM.removeFSRoot fsroot
-
-    | otherwise = do
-        putStrLn ""
-        putStrLn $ "I could not interpret this: " ++ head args
-        printHelp
-        putStrLn ""
-
+    |  null args = printHelp
+    |  head args == "general-scan" = doGeneralScan
+    |  head args == "get-merkle-roots" = doGetMerkleRoots
+    | (head args == "cas-get") && nonemptyTail args = doCasGet (args !! 1)
+    | (head args == "expose-aeson-object") && nonemptyTail args = doExposeAesonObject (args !! 1)
+    | (head args == "run-query") && nonemptyTail args = doRunQuery (args !! 1)
+    |  head args == "fsck" = doFsck 
+    |  head args == "status-report" = doStatusReport
+    |  head args == "print-fs-roots" = doPrintFSRoots
+    | (head args == "add-fs-root") && nonemptyTail args = doAddFsroot (args !! 1)
+    | (head args == "remove-fs-root") && nonemptyTail args = doRmFsroot (args !! 1)
+    |  otherwise = doUnparsable (head args)
+    where
+        nonemptyTail a = not . null $ tail a
+        
 main :: IO ()
 main = do
     args <- getArgs
     doTheThing1 args
 
+-- --------------------------------------------------------------------------------
+
+doGeneralScan :: IO () 
+doGeneralScan = SRM.generalScan
+
+
+doGetMerkleRoots :: IO ()
+doGetMerkleRoots = do
+    scanroots <- FSM.getFSScanRoots
+    mapM_ (\scanroot -> do
+                putStrLn $ "location: " ++ scanroot
+                merkle <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot 
+                          -- IO ( Maybe String )
+                putStrLn $ case merkle of
+                    Nothing -> "merkle  : Unknown!"
+                    Just m  -> "merkle  : " ++ m
+            ) scanroots
+
+
+doCasGet :: String -> IO () 
+doCasGet key = do
+        string <- CAS.get key
+        putStrLn $ case string of
+            Nothing -> "error: Could not retrive data for this key"
+            Just s  ->  Char8.unpack s
+
+
+doExposeAesonObject :: String -> IO ()
+doExposeAesonObject aion_cas_hash = do
+    aionJSONValueAsString <- CAS.get aion_cas_hash
+    putStrLn $ 
+        maybe "error: Could not retrive data for this key"
+              (\a -> let aionJSONValue = Char8.unpack a in 
+                if null aionJSONValue
+                    then "error: I could not find a Content Addressable Store record"
+                    else maybe "error: I could not convert the record to a Aeson Object" show 
+                         (AOU.convertJSONStringIntoAesonValue aionJSONValue)
+              ) aionJSONValueAsString
+
+
+doRunQuery :: String -> IO ()
+doRunQuery pattern = do
+    scanroots <- FSM.getFSScanRoots
+    mapM_ (\scanroot -> do
+                putStrLn scanroot
+                merkleroot <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
+                maybe (putStrLn "error: Could not retrieve Merkle root for this location")
+                    (\mroot -> do
+                        locationpaths <- runMaybeT $ SE.runQueryAgainMerkleRootUsingStoredData scanroot mroot pattern -- IO ( Maybe [ LocationPath ] )
+                        maybe (putStrLn "error: Query has failed (for some reasons...)")
+                            (mapM_ (\folderpath -> putStrLn $ "    " ++ folderpath ))
+                            locationpaths)
+                    merkleroot
+            ) scanroots
+
+
+doFsck :: IO ()
+doFsck = do
+    scanroots <- FSM.getFSScanRoots 
+    mapM_ (\scanroot -> do
+                putStrLn scanroot
+                merkleroot' <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
+                case merkleroot' of
+                    Nothing         -> putStrLn "error: Could not retrieve Merkle root for this location"
+                    Just merkleroot -> do
+                        bool <- SI.aionTreeFsckCASKey merkleroot
+                        if bool
+                            then putStrLn "Aion Tree is correct"
+                            else putStrLn "error: Aion Tree does not check out"
+           ) scanroots
+
+
+doStatusReport :: IO ()
+doStatusReport = do
+    roots <- FSM.getFSScanRoots
+    putStr "FS Scan Root file has "
+    putStr $ show $ length roots
+    putStrLn " elements"
+
+
+doPrintFSRoots :: IO ()
+doPrintFSRoots = FSM.printFSRootsListing
+
+
+doAddFsroot :: String -> IO ()
+doAddFsroot fsroot = FSM.addFSRoot fsroot
+
+
+doRmFsroot :: String -> IO ()
+doRmFsroot fsroot = FSM.removeFSRoot fsroot
+
+
+doUnparsable :: String -> IO ()
+doUnparsable token = do 
+    putStrLn ""
+    putStrLn $ "I could not interpret this: " ++ token 
+    printHelp
+    putStrLn ""
+
+
+-- --------------------------------------------------------------------------------
 
 {-|
 
