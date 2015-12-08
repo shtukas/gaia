@@ -18,9 +18,16 @@ import qualified Data.Text                                as T
 import qualified Data.Vector                              as V
 import qualified GHC.Exts                                 as E
     -- support for the JSON library
+import           Gaia.Types
 import qualified PStorageServices.ContentAddressableStore as CAS
 
-import           Gaia.Types
+-- -----------------------------------------------------------
+-- Some Documentation
+-- -----------------------------------------------------------
+
+{-
+	Understanding Aion Objects (duplicate from documentation) and Aeson Values
+-}
 
 {-|
 
@@ -40,7 +47,7 @@ import           Gaia.Types
         "contents"  : CAS-KEY(s)
     }
 
-    Structure of aesonObjects ( extracted using gaia-utils )
+    Aeson Values ( extracted using gaia-utils )
 
     Object (
         fromList [
@@ -82,74 +89,36 @@ import           Gaia.Types
 -}
 
 -- -----------------------------------------------------------
--- Getting JSON Strings From Storage
+-- Note to self
 -- -----------------------------------------------------------
 
-getAesonJSONStringForCASKey :: String -> MaybeT IO String
-getAesonJSONStringForCASKey hash = do
-    string <- MaybeT $ CAS.get hash
-    return $ Char8.unpack string
+{-
+
+	In fact we do not need Aeson Values of even JSON strings.
+	We simply need a simple string serialization/unserialization
+	of TAionPoint(s).
+
+	A departure from Genesis, but JSON string came up in there only because
+	Ruby manipulate them very well.
+
+-}
 
 -- -----------------------------------------------------------
--- Building Aeson Values
+-- Build TAionPoint from Stored JSON Strings
 -- -----------------------------------------------------------
 
-makeAesonValueForFile :: String -> Integer -> Char8.ByteString -> A.Value
-makeAesonValueForFile filename filesize filecontents =
-    A.Object $ E.fromList [
-        ("aion-type" , A.String "file"),
-        ("version"   , A.Number 1),
-        ("name"      , A.String $ T.pack filename),
-        ("size"      , A.Number $ S.scientific filesize 1 ),
-        ("hash"      , A.String $ T.pack $ SHA.showDigest $ SHA.sha1 filecontents) ]
+{-
+	This section is in essence what is needed to convert a JSON string into
+	a TAionPoint passing through a Aeson Value
+-}
 
-makeAesonValueForDirectory :: String -> [A.Value] -> A.Value
-makeAesonValueForDirectory foldername aesonvalues =
-    A.Object $ E.fromList [
-            ("aion-type" , A.String "directory"),
-            ("version"   , A.Number 1),
-            ("name"      , A.String $ T.pack foldername),
-            ("contents"  , A.Array $ V.fromList aesonvalues ) ]
-
--- -----------------------------------------------------------
--- Aeson Values to JSON String (and Storage)
--- -----------------------------------------------------------
-
-aesonVAlueToString :: A.Value -> String
-aesonVAlueToString value = Char8.unpack $ A.encode value
-
-commitAesonValueToCAS :: A.Value -> IO String
-commitAesonValueToCAS value = CAS.set $ Char8.pack $ aesonVAlueToString value
-
--- -----------------------------------------------------------
---  JSON Strings to Aeson Values
--- -----------------------------------------------------------
-
--- Prelude> import qualified Data.Aeson as A
--- Prelude A> import qualified Data.ByteString.Lazy.Char8 as Char8
--- Prelude A Char8> import Data.Maybe as D
--- Prelude A Char8 D> let value = A.decode (Char8.pack "{\"name\":\"Pascal\"}") :: Maybe A.Value
--- Prelude A Char8 D> value
--- Just (Object (fromList [("name",String "Pascal")]))
--- Prelude A Char8 D> D.fromJust value
--- Object (fromList [("name",String "Pascal")])
+getAionJSONStringForCASKey :: String -> MaybeT IO String
+getAionJSONStringForCASKey hash = do
+    value <- MaybeT $ CAS.get hash
+    return  ( Char8.unpack value )
 
 convertJSONStringIntoAesonValue :: String -> Maybe A.Value
 convertJSONStringIntoAesonValue string = A.decode $ Char8.pack string
-
--- -----------------------------------------------------------
--- Extracting Data from Aeson Value
--- -----------------------------------------------------------
-
-aesonValueIsFile :: A.Value -> Bool
-aesonValueIsFile aesonValue =
-    let
-        value1 = extractListOfPairsFromAesonValue aesonValue []
-        answer = case lookup "aion-type" value1 of
-            Nothing     -> False
-            Just value3 -> ( extractUnderlyingTextFromAesonValueString value3 "" )=="file"
-    in
-        answer
 
 extractListOfPairsFromAesonValue :: A.Value -> [(T.Text ,A.Value)] -> [(T.Text ,A.Value)]
 extractListOfPairsFromAesonValue (A.Object x) _ = HM.toList x
@@ -169,48 +138,15 @@ extractUnderlyingListOfStringsFromAesonValueVectorString (A.Array x) _ =
         ( V.toList x )
 extractUnderlyingListOfStringsFromAesonValueVectorString _ defaultvalue = defaultvalue
 
-aesonValueForFileGaiaProjection :: A.Value -> ( String, Integer, String ) -- ( filename, filesize, sha1-shah )
-aesonValueForFileGaiaProjection aValue =
+aesonValueIsFile :: A.Value -> Bool
+aesonValueIsFile aesonValue =
     let
-        value1 = extractListOfPairsFromAesonValue aValue [] -- [(T.Text ,A.Value)]
-
-        filename =
-            case lookup "name" value1 of
-                Nothing -> ""
-                Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
-
-        filesize =
-            case lookup "size" value1 of
-                Nothing -> 0
-                Just s1 -> extractUnderlyingIntegerFromAesonValueNumber s1 0
-
-        hash =
-            case lookup "hash" value1 of
-                Nothing -> ""
-                Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""
-
-    in (filename,filesize,hash)
-
-aesonValueForDirectoryGaiaProjection :: A.Value -> ( String, [String] ) -- ( foldername, [CAS-Keys(s)] ) ( String, [String] )
-aesonValueForDirectoryGaiaProjection aValue =
-    let
-        value1 = extractListOfPairsFromAesonValue aValue []
-
-        foldername =
-            case lookup "name" value1 of
-                Nothing -> ""
-                Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
-
-        contents =
-            case lookup "contents" value1 of
-                Nothing -> []
-                Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
-
-    in (foldername, contents)
-
--- -----------------------------------------------------------------------------
--- Because manipulating Aeson values in a little bit painful we are going to use
--- the datatypes we defined
+        value1 = extractListOfPairsFromAesonValue aesonValue []
+        answer = case lookup "aion-type" value1 of
+            Nothing     -> False
+            Just value3 -> ( extractUnderlyingTextFromAesonValueString value3 "" )=="file"
+    in
+        answer
 
 aesonValueToTAionPoint :: A.Value -> TAionPoint
 aesonValueToTAionPoint aesonvalue
@@ -251,4 +187,55 @@ aesonValueToTAionPoint aesonvalue
                     Nothing -> []
                     Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
         in TAionPointDirectory foldername contents
+
+-- -----------------------------------------------------------
+-- Commit TAionPoint to disk
+-- -----------------------------------------------------------
+
+{-
+	In this section we move from TAionPoint to JSON String on Disk
+	passing through a Aeson Value.
+	In this case we could as well build the JSON string directly from the TAionPoint
+-}
+
+makeAesonValueForFileUsingFileContents :: String -> Integer -> Char8.ByteString -> A.Value
+makeAesonValueForFileUsingFileContents filename filesize filecontents =
+    makeAesonValueForFileUsingKnownFileHash filename filesize ( SHA.showDigest $ SHA.sha1 filecontents )
+
+makeAesonValueForFileUsingKnownFileHash :: String -> Integer -> String -> A.Value
+makeAesonValueForFileUsingKnownFileHash filename filesize hash =
+    A.Object $ E.fromList [
+        ("aion-type" , A.String "file"),
+        ("version"   , A.Number 1),
+        ("name"      , A.String $ T.pack filename),
+        ("size"      , A.Number $ S.scientific filesize 1 ),
+        ("hash"      , A.String $ T.pack hash) ]
+
+makeAesonValueForDirectoryUsingContentsAesonValues :: String -> [A.Value] -> A.Value
+makeAesonValueForDirectoryUsingContentsAesonValues foldername aesonvalues =
+    A.Object $ E.fromList [
+            ("aion-type" , A.String "directory"),
+            ("version"   , A.Number 1),
+            ("name"      , A.String $ T.pack foldername),
+            ("contents"  , A.Array $ V.fromList aesonvalues ) ]
+
+makeAesonValueForDirectoryUsingContentsHashes :: String -> [String] -> A.Value
+makeAesonValueForDirectoryUsingContentsHashes foldername hashes =
+    A.Object $ E.fromList [
+            ("aion-type" , A.String "directory"),
+            ("version"   , A.Number 1),
+            ("name"      , A.String $ T.pack foldername),
+            ("contents"  , A.Array $ V.fromList ( map (A.String . T.pack ) hashes ) ) ]
+
+aesonVAlueToString :: A.Value -> String
+aesonVAlueToString value = Char8.unpack $ A.encode value
+
+commitAesonValueToCAS :: A.Value -> IO String
+commitAesonValueToCAS value = CAS.set $ Char8.pack $ aesonVAlueToString value
+
+tAionPointToAesonValue :: TAionPoint -> A.Value
+tAionPointToAesonValue ( TAionPointFile filename1 filesize1 hash1 )  = makeAesonValueForFileUsingKnownFileHash filename1 filesize1 hash1
+tAionPointToAesonValue ( TAionPointDirectory foldername2 contents2 ) = makeAesonValueForDirectoryUsingContentsHashes foldername2 contents2
+
+
 

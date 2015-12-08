@@ -8,7 +8,7 @@ With Gaia, not only the regular collection of Nyx objects will be available (wit
 
 ## Why ?
 
-Between our biological memory and the world wide web, there is a that sweet spot called "your own electronic data", mostly (but not always) located on laptops and external hard drives. Gaia (and Nyx before it) is a tool that allows its users (myself and Marcello -- at the latest count) to find things very quickly within our ever increasing large and heterogeneous collection of personal data, not like programs such as Google Desktop, but instead along the lines of our own mental associations. 
+Between our biological memory and the world wide web, there is that sweet spot called "your own electronic data", mostly (but not always) located on laptops and external hard drives. Gaia (and Nyx before it) is a tool that allows its users (myself and Marcello -- at the latest count) to find things very quickly within our ever increasing large and heterogeneous collection of personal data, not like programs such as Google Desktop, but instead along the lines of our own mental associations. 
 
 I like thinking that Nyx/Gaia are designed to make personal biological memories and personal electronic storages devices feel like a single continuous entity.
 
@@ -63,6 +63,7 @@ More to come in next commits...
 - **Done**: Allow users to specify the location of their Xcache repository. (Currently hardcoded to use the existing one on Pascal's computer.)
 - **Done**: To be able to scan more than one location. 
 - **Done**: Use the filepath package and its System.FilePath for multiplatform interfaces for file access.
+- Find a serialization of TAionPoint, the whole Aeson JSON is way too painful and unnecessary. 
 - Make memoization of search engine logic
 - Provide a proper install script.
 

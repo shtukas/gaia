@@ -10,7 +10,7 @@ type LocationPath = String
 -- Aion Points
 
 -- See http://stackoverflow.com/questions/24352280/multiple-declarations-of-x
--- for why I use "unnatural" field names
+-- for why I use "unnatural" field names.
 
 data TAionPoint = TAionPointFile { name1 :: String
                                  , size1 :: Integer
