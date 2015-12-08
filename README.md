@@ -64,6 +64,7 @@ More to come in next commits...
 - **Done**: To be able to scan more than one location. 
 - **Done**: Use the filepath package and its System.FilePath for multiplatform interfaces for file access.
 - Make memoization of search engine logic
+- Start writing some tests
 - Provide a proper install script.
 
 ## Roadmap

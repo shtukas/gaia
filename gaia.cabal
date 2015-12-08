@@ -38,7 +38,7 @@ library
                      , bytestring
                      , directory
                      , filepath
-                     , happstack-lite
+                     , happstack-server
                      , parsec
                      , scientific
                      , SHA
@@ -85,7 +85,7 @@ executable gaia-web
                      , bytestring
                      , directory
                      , filepath
-                     , happstack-lite
+                     , happstack-server
                      , scientific
                      , SHA
                      , system-filepath
