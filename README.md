@@ -63,7 +63,6 @@ More to come in next commits...
 - **Done**: Allow users to specify the location of their Xcache repository. (Currently hardcoded to use the existing one on Pascal's computer.)
 - **Done**: To be able to scan more than one location. 
 - **Done**: Use the filepath package and its System.FilePath for multiplatform interfaces for file access.
-- Find a serialization of TAionPoint, the whole Aeson JSON is way too painful and unnecessary. 
 - Make memoization of search engine logic
 - Provide a proper install script.
 
