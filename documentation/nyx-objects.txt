@@ -157,7 +157,27 @@
 	}
 
 # --------------------------------------------------------------------------------
-# Relations between Contents
+# Cliques
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:clique"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:description"                 : (string)
+	}
+
+# --------------------------------------------------------------------------------
+# Relations
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:relation:clique-member"
+
+		"nyx:creation-datetime"           : (datetime)
+
+		"nyx:clique:uuid"                 : (string)
+		"nyx:member:uuid"                 : (string)
+	}
 
 	{
 		"lucille-energy-grid-uuid"        : (uuid)
