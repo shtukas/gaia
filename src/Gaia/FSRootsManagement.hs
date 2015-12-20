@@ -70,9 +70,8 @@ getFSScanRoots = do
     fileexists <- Dir.doesFileExist filepath
     if fileexists
         then do
-            contents <- readFile filepath
-            let contents' = Data.List.lines contents
-            return $ filter (not.null) contents'
+            contents <- fmap Data.List.lines (readFile filepath)
+            return $ filter (not.null) contents
         else return mempty
 
 -- --------------------------------------------------------------------------
@@ -84,9 +83,6 @@ xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan :: LocationPath -> String
 xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath = "f9c43482-2ae6-4ecc-be23-d4b1f0c7c85d:"++locationpath
 
 merkleRootForFSRootScan :: LocationPath -> MaybeT IO String
-merkleRootForFSRootScan locationpath = do
-    let xcachekey = xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath
-    merkleroot <- MaybeT $ X.get xcachekey
-    return $ Char8.unpack merkleroot
+merkleRootForFSRootScan locationpath = fmap Char8.unpack (MaybeT $ X.get (xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath))
 
 

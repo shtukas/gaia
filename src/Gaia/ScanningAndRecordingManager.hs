@@ -25,9 +25,7 @@ getLocationName :: LocationPath -> LocationPath
 getLocationName = takeFileName
 
 getFileSize :: FilePath -> IO FileOffset
-getFileSize filepath = do
-    stat <- getFileStatus filepath
-    return (fileSize stat)
+getFileSize filepath = fmap fileSize (getFileStatus filepath)
 
 getFileContents :: FilePath -> IO Char8.ByteString
 getFileContents = Char8.readFile
@@ -80,10 +78,7 @@ folderpathToAesonJSONValue folderpath = do
 -- ---------------------------------------------------------------
 
 locationExists :: LocationPath -> IO Bool
-locationExists locationpath = do
-    exists1 <- Dir.doesDirectoryExist locationpath
-    exists2 <- Dir.doesFileExist locationpath
-    return $ exists1 || exists2
+locationExists locationpath = (||) <$> (Dir.doesDirectoryExist locationpath) <*> (Dir.doesFileExist locationpath)
 
 computeMerkleRootForLocationRecursivelyComputedaAndStored :: LocationPath -> IO ( Maybe String )
 computeMerkleRootForLocationRecursivelyComputedaAndStored locationpath = do
@@ -101,10 +96,7 @@ commitMerkleRootForFSScanRoot fsscanlocationpath merkleroot =
     X.set (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan fsscanlocationpath) ( Char8.pack merkleroot )
 
 getCurrentMerkleRootForFSScanRoot :: String -> MaybeT IO String
-getCurrentMerkleRootForFSScanRoot locationpath = do
-    bytes <- MaybeT $ X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
-    return $ Char8.unpack bytes
-
+getCurrentMerkleRootForFSScanRoot locationpath = fmap Char8.unpack ( MaybeT $ X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath) )
 
 -- ---------------------------------------------------------------
 

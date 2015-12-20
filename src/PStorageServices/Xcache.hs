@@ -24,7 +24,7 @@ import           PStorageServices.Types
 --     catchIOError :: IO a -> (IOError -> IO a) -> IO a
 
 getCurrentUnixTime :: IO Int
-getCurrentUnixTime = round `fmap` Time.getPOSIXTime
+getCurrentUnixTime = fmap round Time.getPOSIXTime
 
 getSha1Digest :: Char8.ByteString -> String
 getSha1Digest string = SHA.showDigest $ SHA.sha1 string
