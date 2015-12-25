@@ -1,11 +1,15 @@
 module Main where
 
-{-
-	http://www.happstack.com
-	Runs at http://localhost:8000
--}
+import Control.Monad    (msum)
+import Happstack.Server (dirs, path, nullConf, ok, simpleHTTP, serveDirectory, Browsing(EnableBrowsing), toResponse)
 
-import Happstack.Server (nullConf, simpleHTTP, toResponse, ok)
+-- TODO: remove root directory hardcoding
 
 main :: IO ()
-main = simpleHTTP nullConf $ ok "Hello, World!"
+main = simpleHTTP nullConf $
+    msum [   dirs "api-v1" $ path ( \s -> ok $ toResponse $ "command: " ++ s )
+           , dirs "static" $  ( serveDirectory EnableBrowsing ["index.html"] "/Lucille-E/Applications/Gaia/web-root" )
+           , ok $ toResponse "404"
+         ]
+
+
