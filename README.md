@@ -47,7 +47,10 @@ The list of FS Scan Roots, can be found in the file `~/.gaia/FSRootsListing.txt`
 
 ## gaia-web
 
-To run the web server do `stack exec gaia-web` (this command must be ran at the root of the source code, because the code assume that the folder "web-root" is a child of the current directory). Currently primitive, but works. In this commit queries are not yet submitted to backend, instead are echoed to the page.
+To run the web server do `stack exec gaia-web` (this command must be ran at the root of the source code, because the code assume that the folder "web-root" is a child of the current directory). Then navigate to `http://127.0.0.1:8000`.
+
+
+Currently primitive, but works. In this commit queries are not yet submitted to backend, instead are echoed to the page.
 
 ## What does the search do ?
 

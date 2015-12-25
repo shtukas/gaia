@@ -86,6 +86,7 @@ executable gaia-web
                      , directory
                      , filepath
                      , happstack-server
+                     , json
                      , scientific
                      , SHA
                      , system-filepath
