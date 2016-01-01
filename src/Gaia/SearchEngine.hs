@@ -56,6 +56,9 @@ shouldRetainThisLocationInVirtueOfTheName name pattern = ( GU.stringToLower patt
 
 -- -----------------------------------------------------------
 
+-- CAS.get :: String -> IO ( Maybe Char8.ByteString )
+-- GAOU.convertJSONStringIntoAesonValue :: String -> Maybe A.Value
+
 casKeyToAionName :: String -> MaybeT IO String
 casKeyToAionName key = do
     aionPointAsByteString <- MaybeT $ CAS.get key
