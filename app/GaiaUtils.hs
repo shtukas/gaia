@@ -68,22 +68,8 @@ doTheThing1 args
 
     | ( head args == "run-query" ) && ( length args >= 2 ) = do
         let pattern = args !! 1
-        scanroots <- FSM.getFSScanRoots
-        _ <- mapM ( \scanroot -> do
-                        putStrLn scanroot
-                        merkleroot <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
-                        case merkleroot of
-                            Nothing          -> putStrLn "error: Could not retrieve Merkle root for this location"
-                            Just merkleroot' -> do
-                                locationpaths' <- runMaybeT $ SE.runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
-                                case locationpaths' of
-                                    Nothing            -> putStrLn "error: Query has failed (for some reasons...)"
-                                    Just locationpaths -> do
-                                        let folderpaths = locationpaths -- this is a redundant allocation, I am for getting rid of it
-                                        _ <- mapM (\folderpath -> putStrLn ("    " ++ folderpath)) folderpaths
-                                        return ()
-
-                    ) scanroots
+        let locations = SE.runQuery2 pattern -- runQuery2 :: String -> [String]
+        _ <- sequence $ map putStrLn locations
         return ()
 
     | head args == "fsck" = do

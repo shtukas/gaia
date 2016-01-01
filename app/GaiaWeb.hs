@@ -9,9 +9,10 @@ import Happstack.Server (dirs, path, nullConf, simpleHTTP,
 import Happstack.Server.Response as R
 
 import Gaia.Types
+import qualified Gaia.SearchEngine as GSE
 
 alpha_search :: String -> SEStructure1
-alpha_search pattern = SEStructure1C ["/Users/pascal/Desktop/alice.txt"]
+alpha_search pattern = SEStructure1C $ GSE.runQuery2 pattern
 
 main :: IO ()
 main = simpleHTTP nullConf $

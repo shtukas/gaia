@@ -3,7 +3,8 @@
 
 module Gaia.SearchEngine (
     extractLocationPathsForAionCASKeyAndPatternAndLocationPath,
-    runQueryAgainMerkleRootUsingStoredData
+    runQueryAgainMerkleRootUsingStoredData,
+    runQuery2
 ) where
 
 import           Control.Monad
@@ -12,12 +13,15 @@ import qualified Data.Aeson as A
     -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.List as D
+import qualified Gaia.FSRootsManagement as FSM
 import qualified Gaia.AesonObjectsUtils as GAOU
 import qualified Gaia.Directives as GD
 import qualified Gaia.GeneralUtils as GU
+import qualified Gaia.ScanningAndRecordingManager as SRM
 import           Gaia.Types
 import qualified PStorageServices.ContentAddressableStore as CAS
 import qualified System.FilePath as FS
+import           System.IO.Unsafe (unsafePerformIO)
 
 -- -----------------------------------------------------------
 
@@ -150,5 +154,23 @@ runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern =
 
 -- -----------------------------------------------------------
 
+runQuery1 :: String -> IO [String]
+runQuery1 pattern = do
+    scanroots <- FSM.getFSScanRoots -- getFSScanRoots :: IO [ String ]
+    let x = map (\scanroot -> do
+                    merkleroot <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
+                    case merkleroot of
+                        Nothing -> return []
+                        Just merkleroot' -> do
+                            locationpaths' <- runMaybeT $ runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
+                            -- Maybe [ LocationPath ]
+                            case locationpaths' of 
+                                Nothing -> return []
+                                Just locationpaths'' -> return locationpaths''
+                ) scanroots 
+    -- x :: [ IO [ String] ]
+    fmap concat ( sequence x ) 
 
+runQuery2 :: String -> [String]
+runQuery2 pattern = unsafePerformIO $ runQuery1 pattern
 
