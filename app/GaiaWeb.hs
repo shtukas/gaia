@@ -8,18 +8,10 @@ import Happstack.Server (dirs, path, nullConf, simpleHTTP,
                          serveDirectory, Browsing(EnableBrowsing))
 import Happstack.Server.Response as R
 
-import Text.JSON.Generic
-import qualified Data.ByteString.Char8 as B1
-import qualified Data.ByteString.Lazy.Char8 as Char8
+import Gaia.Types
 
-data Patterns = PatternsC [String]
-
-instance R.ToMessage Patterns where
-  toContentType _ = B1.pack "application/json"
-  toMessage (PatternsC x) = (Char8.pack . encodeJSON) x
-
-alpha_search :: String -> Patterns
-alpha_search pattern = PatternsC ["/Users/pascal/Desktop/alice.txt"]
+alpha_search :: String -> SEStructure1
+alpha_search pattern = SEStructure1C ["/Users/pascal/Desktop/alice.txt"]
 
 main :: IO ()
 main = simpleHTTP nullConf $
