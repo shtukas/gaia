@@ -5,7 +5,6 @@ module Gaia.AesonObjectsUtils where
 
 -- This module concentrates utility functions to facilitate the reading of Aeson Objects
 
-import           Control.Monad.Trans.Maybe
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.Digest.Pure.SHA as SHA
@@ -92,7 +91,7 @@ import qualified PStorageServices.ContentAddressableStore as CAS
 
 	In fact we do not need Aeson Values of even JSON strings.
 	We simply need a simple string serialization/unserialization
-	of TAionPoint(s).
+	of TAionPointGeneric(s).
 
 	A departure from Genesis, but JSON string came up in there only because
 	Ruby manipulate them very well.
@@ -100,12 +99,12 @@ import qualified PStorageServices.ContentAddressableStore as CAS
 -}
 
 -- -----------------------------------------------------------
--- Build TAionPoint from Stored JSON Strings
+-- Build TAionPointGeneric from Stored JSON Strings
 -- -----------------------------------------------------------
 
 {-
 	This section is in essence what is needed to convert a JSON string into
-	a TAionPoint passing through a Aeson Value
+	a TAionPointGeneric passing through a Aeson Value
 -}
 
 getAionJSONStringForCASKey3 :: String -> IO (Maybe String)
@@ -142,54 +141,48 @@ aesonValueIsFile aesonValue =
         Nothing     -> False
         Just v' -> ( extractUnderlyingTextFromAesonValueString v' "" )=="file"
     
-aesonValueToTAionPoint :: A.Value -> TAionPoint
-aesonValueToTAionPoint aesonvalue
+aesonValueToTAionPointGeneric :: A.Value -> TAionPointGeneric
+aesonValueToTAionPointGeneric aesonvalue
     | aesonValueIsFile aesonvalue =
         let
             value1 = extractListOfPairsFromAesonValue aesonvalue [] -- [(T.Text ,A.Value)]
-
             filename =
                 case Prelude.lookup "name" value1 of
                     Nothing -> ""
                     Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
-
             filesize =
                 case Prelude.lookup "size" value1 of
                     Nothing -> 0
                     Just s1 -> extractUnderlyingIntegerFromAesonValueNumber s1 0
-
             hash =
                 case Prelude.lookup "hash" value1 of
                     Nothing -> ""
                     Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""
-
-        in TAionPointFile filename filesize hash
+        in TAionPointGenericFromFile (TAionPointFile filename filesize hash)
     | otherwise =
         -- Here we make a leap of faith that if it's not a file it's a directory
         -- TODO: understand if is worth to move it to Either or Maybe with a
         --       check isDirectory or simply brutally panic if not a directory :P
         let
             value1 = extractListOfPairsFromAesonValue aesonvalue []
-
             foldername =
                 case Prelude.lookup "name" value1 of
                     Nothing -> ""
                     Just v2 -> T.unpack $ extractUnderlyingTextFromAesonValueString v2 ""
-
             contents =
                 case Prelude.lookup "contents" value1 of
                     Nothing -> []
                     Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
-        in TAionPointDirectory foldername contents
+        in TAionPointGenericFromDirectory (TAionPointDirectory foldername contents)
 
 -- -----------------------------------------------------------
--- Commit TAionPoint to disk
+-- Commit TAionPointGeneric to disk
 -- -----------------------------------------------------------
 
 {-
-	In this section we move from TAionPoint to JSON String on Disk
+	In this section we move from TAionPointGeneric to JSON String on Disk
 	passing through a Aeson Value.
-	In this case we could as well build the JSON string directly from the TAionPoint
+	In this case we could as well build the JSON string directly from the TAionPointGeneric
 -}
 
 makeAesonValueForFileUsingFileContents :: String -> Integer -> Char8.ByteString -> A.Value
@@ -227,9 +220,9 @@ aesonVAlueToString value = Char8.unpack $ A.encode value
 commitAesonValueToCAS :: A.Value -> IO String
 commitAesonValueToCAS value = CAS.set $ Char8.pack $ aesonVAlueToString value
 
-tAionPointToAesonValue :: TAionPoint -> A.Value
-tAionPointToAesonValue ( TAionPointFile filename1 filesize1 hash1 )  = makeAesonValueForFileUsingKnownFileHash filename1 filesize1 hash1
-tAionPointToAesonValue ( TAionPointDirectory foldername2 contents2 ) = makeAesonValueForDirectoryUsingContentsHashes foldername2 contents2
+tAionPointToAesonValue :: TAionPointGeneric -> A.Value
+tAionPointToAesonValue (TAionPointGenericFromFile (TAionPointFile filename1 filesize1 hash1))  = makeAesonValueForFileUsingKnownFileHash filename1 filesize1 hash1
+tAionPointToAesonValue (TAionPointGenericFromDirectory (TAionPointDirectory foldername2 contents2)) = makeAesonValueForDirectoryUsingContentsHashes foldername2 contents2
 
 
 

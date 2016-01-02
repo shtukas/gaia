@@ -5,8 +5,6 @@ module Gaia.SearchEngine (
     runQuery2
 ) where
 
-import qualified Data.Aeson as A
-    -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.List as D
 import qualified Gaia.FSRootsManagement as FSM
@@ -45,12 +43,12 @@ casKeyToAionName key = do
             case aesonValue of 
                 Nothing -> return Nothing
                 Just aesonValue' -> do
-                    -- aesonValueToTAionPoint :: A.Value -> TAionPoint
-                    let tap = GAOU.aesonValueToTAionPoint aesonValue'
-                    let name = if GAOU.aesonValueIsFile aesonValue' 
-                               then name1 tap 
-                               else name2 tap
-                    return $ Just name
+                    -- aesonValueToTAionPointGeneric :: A.Value -> TAionPointGeneric
+                    let tapointgen = GAOU.aesonValueToTAionPointGeneric aesonValue'
+                    return $ Just (extractNameFromTAPoint tapointgen)
+                    where 
+                        extractNameFromTAPoint (TAionPointGenericFromFile (TAionPointFile filename _ _)) = filename
+                        extractNameFromTAPoint (TAionPointGenericFromDirectory (TAionPointDirectory foldername _)) = foldername
 
 -- -----------------------------------------------------------
 -- Aion Points Recursive Analysis
@@ -66,7 +64,7 @@ casKeyToAionName key = do
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [ LocationPath ]
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pattern locationpath =
     do
-        let tap = GAOU.aesonValueToTAionPoint aesonValueFile
+        let tap = GAOU.aesonValueToTAionPointGeneric aesonValueFile
         if name1 tap =="gaia"
             then do
                 -- parseDirectivesFile :: FilePath -> MaybeT IO [Directive]
@@ -84,21 +82,16 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pa
                         return []
 -}
 
-extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [ LocationPath ]
-extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pattern locationpath = do
-        if isInfixOfCaseIndependent2 pattern (name1 tap)
+extractLocationPathsForTAionPointFileAndPatternAndLocationPath :: TAionPointFile -> String -> LocationPath -> IO [ LocationPath ]
+extractLocationPathsForTAionPointFileAndPatternAndLocationPath (TAionPointFile filename _ _) pattern locationpath = do
+        if isInfixOfCaseIndependent2 pattern filename
             then
                 return [ locationpath ]
             else
                 return []
-        where 
-            tap = GAOU.aesonValueToTAionPoint aesonValueFile
 
-extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [LocationPath]
-extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonValueDirectory pattern locationpath = do
-    let tap = GAOU.aesonValueToTAionPoint aesonValueDirectory
-    let foldername = name2 tap
-    let caskeys = contents2 tap
+extractLocationPathsForTAionPointDirectoryAndPatternAndLocationPath :: TAionPointDirectory -> String -> LocationPath -> IO [LocationPath]
+extractLocationPathsForTAionPointDirectoryAndPatternAndLocationPath ( TAionPointDirectory foldername caskeys ) pattern locationpath = do
     let x1 = map (\caskey -> do
                                 maybename <- casKeyToAionName caskey
                                 case maybename of
@@ -119,11 +112,9 @@ extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonValueDi
     else
         x3
 
-extractLocationPathsForAesonValueAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [LocationPath]
-extractLocationPathsForAesonValueAndPatternAndLocationPath aesonObject pattern locationpath =
-    if GAOU.aesonValueIsFile aesonObject
-        then extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObject pattern locationpath
-        else extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObject pattern locationpath
+extractLocationPathsForTAionPointGenericAndPatternAndLocationPath2 :: TAionPointGeneric -> String -> LocationPath -> IO [LocationPath]
+extractLocationPathsForTAionPointGenericAndPatternAndLocationPath2 (TAionPointGenericFromFile taionpointfile) pattern locationpath = extractLocationPathsForTAionPointFileAndPatternAndLocationPath taionpointfile pattern locationpath
+extractLocationPathsForTAionPointGenericAndPatternAndLocationPath2 (TAionPointGenericFromDirectory taionpointdirectory) pattern locationpath = extractLocationPathsForTAionPointDirectoryAndPatternAndLocationPath taionpointdirectory pattern locationpath
 
 extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [LocationPath]
 extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern locationpath = do
@@ -135,7 +126,7 @@ extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern
             let aionJSONValue = GAOU.convertJSONStringIntoAesonValue aionJSONValueAsString'
             case aionJSONValue of
                 Nothing -> return []
-                Just aionJSONValue' -> extractLocationPathsForAesonValueAndPatternAndLocationPath aionJSONValue' pattern locationpath
+                Just aionJSONValue' -> extractLocationPathsForTAionPointGenericAndPatternAndLocationPath2 (GAOU.aesonValueToTAionPointGeneric aionJSONValue') pattern locationpath
 
 -- -----------------------------------------------------------
 -- Running queries against Merkle Roots

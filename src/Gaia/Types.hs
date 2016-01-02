@@ -12,17 +12,24 @@ type FolderPath   = String
 type LocationPath = String
 
 -- -----------------------------------------------------------------------------
--- Aion Points
+-- Aion Points, TAionPointGeneric
+{-
+	TAionPointGeneric are "projections" of Aeson Values.
+	They are used to make the code of the search engine independent from Aeson. 
+-}
 
 -- See http://stackoverflow.com/questions/24352280/multiple-declarations-of-x
 -- for why I use "unnatural" field names.
 
-data TAionPoint = TAionPointFile { name1 :: String
-                                 , size1 :: Integer
-                                 , hash1 :: String }
-                | TAionPointDirectory  { name2     :: String
-                                       , contents2 :: [String] }
-    deriving (Show)
+data TAionPointFile = TAionPointFile { name1 :: String
+                                     , size1 :: Integer
+                                     , hash1 :: String } deriving (Show)
+
+data TAionPointDirectory = TAionPointDirectory { name2 :: String
+                                               , contents2 :: [String] } deriving (Show)
+
+data TAionPointGeneric = TAionPointGenericFromFile TAionPointFile | TAionPointGenericFromDirectory TAionPointDirectory 
+                         deriving (Show)
 
 -- -----------------------------------------------------------------------------
 -- Gaia Files
@@ -39,8 +46,12 @@ instance Show GaiaFileDirective where
 
 -- -----------------------------------------------------------------------------
 -- FileSystemSearchEngine
+{-
+	SEStructure1 encapsulates answers from the Search Engine. 
+	It is used because we needed to make them instances of Happstack's ToMessage classtype.
+-}
 
-data SEStructure1 = SEStructure1C [String]
+newtype SEStructure1 = SEStructure1C [String]
 
 instance R.ToMessage SEStructure1 where
   toContentType _ = B1.pack "application/json"

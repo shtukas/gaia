@@ -6,7 +6,6 @@ module Gaia.ScanningAndRecordingManager (
     generalScan
 ) where
 
-import           Control.Monad.Trans.Maybe
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.Text as T
@@ -99,8 +98,8 @@ getCurrentMerkleRootForFSScanRoot :: String -> IO (Maybe String)
 -- xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan :: LocationPath -> String
 -- get :: String -> IO ( Maybe Char8.ByteString )
 getCurrentMerkleRootForFSScanRoot locationpath = do
-	maybe_bytestring <- X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
-	return $ fmap Char8.unpack ( maybe_bytestring )
+    maybe_bytestring <- X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
+    return $ fmap Char8.unpack ( maybe_bytestring )
 
 -- ---------------------------------------------------------------
 

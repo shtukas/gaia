@@ -1,8 +1,20 @@
 module Gaia.SystemIntegrity where
 
-import           Control.Monad.Trans.Maybe
+import qualified Data.Aeson as A
 import qualified Gaia.AesonObjectsUtils as GAOU
 import           Gaia.Types
+
+aionTreeFsckAesonValue :: A.Value -> IO Bool
+aionTreeFsckAesonValue aesonValue = do
+    let tap = GAOU.aesonValueToTAionPointGeneric aesonValue
+    case tap of
+        TAionPointGenericFromFile _ -> return True
+        TAionPointGenericFromDirectory (TAionPointDirectory _ contents) -> do
+            -- map aionTreeFsckCASKey contents :: [IO Bool]
+            -- sequence $ map aionTreeFsckCASKey contents :: IO [Bool]
+            list <- sequence $ map aionTreeFsckCASKey contents
+            -- list :: [Bool]
+            return $ and list
 
 -- This function checks the Aion Tree below a CAS Key
 aionTreeFsckCASKey :: String -> IO Bool
@@ -11,14 +23,8 @@ aionTreeFsckCASKey caskey = do
     case string' of
         Nothing     -> return False
         Just string -> do
-            let aesonValue = GAOU.convertJSONStringIntoAesonValue string
-            aionTreeFsckAesonValue aesonValue
-    where
-         aionTreeFsckAesonValue Nothing = return False
-         aionTreeFsckAesonValue (Just aesonValue) = do
-                    let tap = GAOU.aesonValueToTAionPoint aesonValue
-                    case tap of
-                        TAionPointFile {}  -> return True
-                        TAionPointDirectory _ contents -> do
-                            list <- mapM aionTreeFsckCASKey contents
-                            return $ and list
+            -- convertJSONStringIntoAesonValue :: String -> Maybe A.Value
+            case (GAOU.convertJSONStringIntoAesonValue string) of
+                Nothing -> return False
+                Just avalue -> aionTreeFsckAesonValue avalue
+
