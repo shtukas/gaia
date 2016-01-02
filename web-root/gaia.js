@@ -49,7 +49,7 @@ function cycle_command_line_classic_server_evaluation(line){
 
 function cycle_command_line_classic_processing(){
 	var line = $("#div-id-command-line-classic-input-text").val().trim();
-	if(line.length<=3){
+	if(line.length<3){
 		return;
 	}
 	cycle_command_line_classic_server_evaluation(line);
