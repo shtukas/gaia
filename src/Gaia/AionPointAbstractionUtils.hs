@@ -141,8 +141,8 @@ aesonValueIsFile aesonValue =
         Nothing     -> False
         Just v' -> ( extractUnderlyingTextFromAesonValueString v' "" )=="file"
     
-aesonValueToAionPointAbstractionGeneric :: A.Value -> AionPointAbstractionGeneric
-aesonValueToAionPointAbstractionGeneric aesonvalue
+extendedAesonValueToExtendedAionPointAbstractionGeneric :: ExtendedAesonValue -> ExtendedAionPointAbstractionGeneric
+extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aesonvalue caskey)
     | aesonValueIsFile aesonvalue =
         let
             value1 = extractListOfPairsFromAesonValue aesonvalue [] -- [(T.Text ,A.Value)]
@@ -158,7 +158,7 @@ aesonValueToAionPointAbstractionGeneric aesonvalue
                 case Prelude.lookup "hash" value1 of
                     Nothing -> ""
                     Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""
-        in AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename filesize hash)
+        in ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename filesize hash)) caskey
     | otherwise =
         -- Here we make a leap of faith that if it's not a file it's a directory
         -- TODO: understand if is worth to move it to Either or Maybe with a
@@ -173,7 +173,7 @@ aesonValueToAionPointAbstractionGeneric aesonvalue
                 case Prelude.lookup "contents" value1 of
                     Nothing -> []
                     Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
-        in AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername contents)
+        in ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername contents)) caskey
 
 -- -----------------------------------------------------------
 -- Commit AionPointAbstractionGeneric to disk

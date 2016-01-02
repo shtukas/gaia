@@ -18,6 +18,7 @@ main :: IO ()
 main = simpleHTTP nullConf $
     msum [   dirs "api/v0" $ ok $ toResponse "Use the Force!"
            , dirs "api/v1/search" $ do path ( \pattern -> ok ( toResponse $ alpha_search pattern ) )
+           , dirs "api/v1/aion-point" $ do path ( \s -> ok ( toResponse $ "Coming soon: " ++ s) )
            , serveDirectory EnableBrowsing ["index.html"] "/Lucille-E/Applications/Gaia/web-root"
          ]
 

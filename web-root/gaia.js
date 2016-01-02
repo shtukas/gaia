@@ -3,8 +3,17 @@
 // -- CLASSIC SEARCH 
 // --------------------------------------------
 /*
-	(api_v1_search_dataset) = [Element]
-	Element = String
+	(api_v1_search_dataset) = 
+		[
+			{
+				"location": "/Users/pascal/Desktop/pascal-.txt",
+				"caskey": "a82e0c6ac0bf958fadbab48abc6345e0b6e83393"
+			}, 
+			{
+				"location": "/Users/pascal/Desktop/pascal-news-entry.txt",
+				"caskey": "f02cb0a2c02fcfe3c85e796e559f3ad059ff2798"
+			}
+		]
 */
 
 var true_if_an_evaluation_is_running = false;
@@ -19,7 +28,7 @@ function unique(array){
 function api_v1_search_dataset_to_html(dataset){
 	return dataset
 			.map(function(element){
-				return '<li><a href="#">'+element+'</a></li>'
+				return '<li><a href="/api/v1/aion-point/'+element.caskey+'">'+element.location+'</a></li>'
 			})
 			.join('')
 }

@@ -94,7 +94,7 @@ instance R.ToMessage SEStructure1 where
     A basic element is a location together with its CAS key.
     This because we need to send the aion point cas key to the web client.
 -}
-data SEAtom = SEAtom String String -- first is the location and second is the cas key
+data SEAtom = SEAtom String String deriving (Show) -- first is the location and second is the cas key
 newtype SEStructure2 = SEStructure2 [SEAtom]
 
 instance A.ToJSON SEAtom where

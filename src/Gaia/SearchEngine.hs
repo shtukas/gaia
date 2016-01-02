@@ -42,11 +42,11 @@ casKeyToAionName key = do
             case aesonValue of 
                 Nothing -> return Nothing
                 Just aesonValue' -> do
-                    let tapointgen = GAOU.aesonValueToAionPointAbstractionGeneric aesonValue'
-                    return $ Just (extractNameFromTAPoint tapointgen)
+                    let x1 = GAOU.extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aesonValue' key)
+                    return $ Just (extractNameFromAionExtendedPointAbstractionGeneric x1)
                     where 
-                        extractNameFromTAPoint (AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename _ _)) = filename
-                        extractNameFromTAPoint (AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername _)) = foldername
+                        extractNameFromAionExtendedPointAbstractionGeneric (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename _ _)) caskey) = filename
+                        extractNameFromAionExtendedPointAbstractionGeneric (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername _)) caskey) = foldername
 
 -- -----------------------------------------------------------
 -- Aion Points Recursive Analysis
@@ -62,7 +62,7 @@ casKeyToAionName key = do
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [ LocationPath ]
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pattern locationpath =
     do
-        let tap = GAOU.aesonValueToAionPointAbstractionGeneric aesonValueFile
+        let tap = GAOU.extendedAesonValueToExtendedAionPointAbstractionGeneric aesonValueFile
         if name1 tap =="gaia"
             then do
                 -- parseDirectivesFile :: FilePath -> MaybeT IO [Directive]
@@ -80,42 +80,42 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pa
                         return []
 -}
 
-extractLocationPathsForAionPointAbstractionFileAndPatternAndLocationPath :: AionPointAbstractionFile -> String -> LocationPath -> IO [ LocationPath ]
-extractLocationPathsForAionPointAbstractionFileAndPatternAndLocationPath (AionPointAbstractionFile filename _ _) pattern locationpath = do
+extractLocationPathsForAionPointAbstractionFileAndPatternAndLocationPath :: AionPointAbstractionFile -> String -> LocationPath -> String -> IO [SEAtom]
+extractLocationPathsForAionPointAbstractionFileAndPatternAndLocationPath (AionPointAbstractionFile filename _ _) pattern locationpath caskey = do
         if isInfixOfCaseIndependent2 pattern filename
             then
-                return [ locationpath ]
+                return [ SEAtom locationpath caskey ]
             else
                 return []
 
-extractLocationPathsForAionPointAbstractionDirectoryAndPatternAndLocationPath :: AionPointAbstractionDirectory -> String -> LocationPath -> IO [LocationPath]
-extractLocationPathsForAionPointAbstractionDirectoryAndPatternAndLocationPath ( AionPointAbstractionDirectory foldername caskeys ) pattern locationpath = do
-    let x1 = map (\caskey -> do
-                                maybename <- casKeyToAionName caskey
+extractLocationPathsForAionPointAbstractionDirectoryAndPatternAndLocationPath :: AionPointAbstractionDirectory -> String -> LocationPath -> String -> IO [SEAtom]
+extractLocationPathsForAionPointAbstractionDirectoryAndPatternAndLocationPath (AionPointAbstractionDirectory foldername caskeys) pattern locationpath caskey = do
+    let x1 = map (\xcaskey -> do
+                                maybename <- casKeyToAionName xcaskey
                                 case maybename of
                                     Nothing -> return []
-                                    -- extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [LocationPath]
-                                    -- extractLocationPathsForAionCASKeyAndPatternAndLocationPath <aion cas hash> <search pattern> <current path>
-                                    Just name -> extractLocationPathsForAionCASKeyAndPatternAndLocationPath caskey pattern (FS.normalise $ FS.joinPath [locationpath, name])
+                                    -- extractSEAtomForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [LocationPath]
+                                    -- extractSEAtomForAionCASKeyAndPatternAndLocationPath <aion cas hash> <search pattern> <current path>
+                                    Just name -> extractSEAtomForAionCASKeyAndPatternAndLocationPath xcaskey pattern (FS.normalise $ FS.joinPath [locationpath, name])
                             ) caskeys
-    -- x1 :: [IO [LocationPath]]
+    -- x1 :: [IO [SEAtom]]
     let x2 = sequence x1
-    -- x2 :: IO [[LocationPath]]
+    -- x2 :: IO [[SEAtom]]
     let x3 = fmap concat x2
-    -- x3 :: IO [LocationPath]
+    -- x3 :: IO [SEAtom]
     if isInfixOfCaseIndependent2 pattern foldername
     then do
         x4 <- x3
-        return $ locationpath : x4
+        return $ (SEAtom locationpath caskey) : x4
     else
         x3
 
-extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 :: AionPointAbstractionGeneric -> String -> LocationPath -> IO [LocationPath]
-extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (AionPointAbstractionGenericFromFile taionpointfile) pattern locationpath = extractLocationPathsForAionPointAbstractionFileAndPatternAndLocationPath taionpointfile pattern locationpath
-extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (AionPointAbstractionGenericFromDirectory taionpointdirectory) pattern locationpath = extractLocationPathsForAionPointAbstractionDirectoryAndPatternAndLocationPath taionpointdirectory pattern locationpath
+extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 :: ExtendedAionPointAbstractionGeneric -> String -> LocationPath -> IO [SEAtom]
+extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromFile taionpointfile) caskey) pattern locationpath = extractLocationPathsForAionPointAbstractionFileAndPatternAndLocationPath taionpointfile pattern locationpath caskey
+extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromDirectory taionpointdirectory) caskey) pattern locationpath = extractLocationPathsForAionPointAbstractionDirectoryAndPatternAndLocationPath taionpointdirectory pattern locationpath caskey
 
-extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [LocationPath]
-extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern locationpath = do
+extractSEAtomForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [SEAtom]
+extractSEAtomForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern locationpath = do
     aionJSONValueAsString <- GAOU.getAionJSONStringForCASKey3 aion_cas_hash
     case aionJSONValueAsString of 
         Nothing -> return []
@@ -124,7 +124,7 @@ extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern
             let aionJSONValue = GAOU.convertJSONStringIntoAesonValue aionJSONValueAsString'
             case aionJSONValue of
                 Nothing -> return []
-                Just aionJSONValue' -> extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (GAOU.aesonValueToAionPointAbstractionGeneric aionJSONValue') pattern locationpath
+                Just aionJSONValue' -> extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (GAOU.extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aionJSONValue' aion_cas_hash)) pattern locationpath
 
 -- -----------------------------------------------------------
 -- Running queries against Merkle Roots
@@ -143,30 +143,31 @@ extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern
 
 -}
 
-runQueryAgainMerkleRootUsingStoredData :: LocationPath -> String -> String -> IO [ LocationPath ]
+runQueryAgainMerkleRootUsingStoredData :: LocationPath -> String -> String -> IO [SEAtom]
 runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern =
-    extractLocationPathsForAionCASKeyAndPatternAndLocationPath merkleroot pattern fsroot
+    extractSEAtomForAionCASKeyAndPatternAndLocationPath merkleroot pattern fsroot
 
 -- -----------------------------------------------------------
 -- Search Engine Interface
 -- -----------------------------------------------------------
 
-runQuery1 :: String -> IO [String]
+runQuery1 :: String -> IO [SEAtom]
 runQuery1 pattern = do
-    -- getFSScanRoots :: IO [ String ]
+    -- getFSScanRoots :: IO [String]
     scanroots <- FSM.getFSScanRoots 
     let x = map (\scanroot -> do
                     merkleroot <- SRM.getCurrentMerkleRootForFSScanRoot scanroot
                     case merkleroot of
                         Nothing -> return []
-                        Just merkleroot' -> runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
+                        Just merkleroot' -> runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern
                 ) scanroots 
-    -- x :: [ IO [ String] ]
+    -- x :: [IO [SEAtom]]
     fmap concat ( sequence x ) 
 
-runQuery2 :: String -> [String]
+runQuery2 :: String -> [SEAtom]
 runQuery2 pattern = unsafePerformIO $ runQuery1 pattern
 
 runQuery3 :: String -> [SEAtom]
-runQuery3 pattern = map (\string -> SEAtom string "1234567890") (unsafePerformIO $ runQuery1 pattern)
+runQuery3 pattern = unsafePerformIO $ runQuery1 pattern
+
 

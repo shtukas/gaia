@@ -67,8 +67,8 @@ doTheThing1 args
 
     | ( head args == "run-query" ) && ( length args >= 2 ) = do
         let pattern = args !! 1
-        let locations = SE.runQuery2 pattern -- runQuery2 :: String -> [String]
-        _ <- sequence $ map putStrLn locations
+        let seatoms = SE.runQuery2 pattern -- runQuery2 :: String -> [SEAtom]
+        _ <- sequence $ map ( \seatom -> putStrLn $ show seatom ) seatoms
         return ()
 
     | head args == "fsck" = do
