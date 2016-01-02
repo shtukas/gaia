@@ -3,6 +3,7 @@ module Gaia.Types where
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as B1
 import qualified Data.ByteString.Lazy.Char8 as Char8
+import qualified Data.Text as T
 import           Happstack.Server.Response as R
 import qualified Text.JSON.Generic as TJG
 
@@ -11,6 +12,19 @@ import qualified Text.JSON.Generic as TJG
 
 type FolderPath   = String
 type LocationPath = String
+
+-- -----------------------------------------------------------------------------
+-- Gaia Files
+
+type GaiaFileDirectiveBody = String
+data GaiaFileDirectiveTag  = GaiaFileTag        -- | NewTag1 | NewTag2 ...
+                     deriving (Eq, Show)
+
+data GaiaFileDirective = GaiaFileDirective GaiaFileDirectiveTag GaiaFileDirectiveBody
+                 deriving (Eq)
+
+instance Show GaiaFileDirective where
+  show (GaiaFileDirective t b) = show t ++ " -> " ++ "\"" ++ b ++ "\""
 
 -- -----------------------------------------------------------------------------
 -- Aion Points, AionPointAbstractionGeneric
@@ -60,19 +74,6 @@ data AionPointAbstractionGeneric = AionPointAbstractionGenericFromFile AionPoint
 data ExtendedAionPointAbstractionGeneric = ExtendedAionPointAbstractionGeneric AionPointAbstractionGeneric String deriving (Show) -- string is the cas key 
 
 -- -----------------------------------------------------------------------------
--- Gaia Files
-
-type GaiaFileDirectiveBody = String
-data GaiaFileDirectiveTag  = GaiaFileTag        -- | NewTag1 | NewTag2 ...
-                     deriving (Eq, Show)
-
-data GaiaFileDirective = GaiaFileDirective GaiaFileDirectiveTag GaiaFileDirectiveBody
-                 deriving (Eq)
-
-instance Show GaiaFileDirective where
-  show (GaiaFileDirective t b) = show t ++ " -> " ++ "\"" ++ b ++ "\""
-
--- -----------------------------------------------------------------------------
 -- FileSystemSearchEngine
 {-
 	SEStructure1 encapsulates answers from the Search Engine. 
@@ -82,9 +83,11 @@ instance Show GaiaFileDirective where
 newtype SEStructure1 = SEStructure1 [String]
 
 instance R.ToMessage SEStructure1 where
-  toContentType _ = B1.pack "application/json"
-  toMessage (SEStructure1 x) = (Char8.pack . TJG.encodeJSON) x
+    toContentType _ = B1.pack "application/json"
+    toMessage (SEStructure1 x) = (Char8.pack . TJG.encodeJSON) x
 
+-- -----------------------------------------------------------------------------
+-- FileSystemSearchEngine
 
 {-
     SEStructure2 is the second version of search engine return set
@@ -93,4 +96,18 @@ instance R.ToMessage SEStructure1 where
 -}
 data SEAtom = SEAtom String String -- first is the location and second is the cas key
 newtype SEStructure2 = SEStructure2 [SEAtom]
+
+instance A.ToJSON SEAtom where
+    toJSON (SEAtom location caskey) = A.object [ (T.pack "location") A..= (A.String $ T.pack location)
+                                               , (T.pack "caskey")   A..= (A.String $ T.pack caskey)
+                                               ]
+
+instance A.ToJSON SEStructure2 where
+    toJSON (SEStructure2 list) = A.toJSON list
+
+instance R.ToMessage SEStructure2 where
+    toContentType _ = B1.pack "application/json"
+    toMessage (SEStructure2 x) = (A.encode . A.toJSON) x
+
+
 

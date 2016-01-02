@@ -11,8 +11,8 @@ import Happstack.Server.Response as R
 import Gaia.Types
 import qualified Gaia.SearchEngine as GSE
 
-alpha_search :: String -> SEStructure1
-alpha_search pattern = SEStructure1 $ GSE.runQuery2 pattern
+alpha_search :: String -> SEStructure2
+alpha_search pattern = SEStructure2 $ GSE.runQuery3 pattern
 
 main :: IO ()
 main = simpleHTTP nullConf $
@@ -22,5 +22,5 @@ main = simpleHTTP nullConf $
          ]
 
 -- currently runs at http://localhost:8000
--- TODO: remove root directory hardcoding
+-- curl http://localhost:8000/api/v1/search/pascal
 

@@ -2,7 +2,8 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Gaia.SearchEngine (
-    runQuery2
+    runQuery2,
+    runQuery3
 ) where
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
@@ -165,4 +166,7 @@ runQuery1 pattern = do
 
 runQuery2 :: String -> [String]
 runQuery2 pattern = unsafePerformIO $ runQuery1 pattern
+
+runQuery3 :: String -> [SEAtom]
+runQuery3 pattern = map (\string -> SEAtom string "1234567890") (unsafePerformIO $ runQuery1 pattern)
 
