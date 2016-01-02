@@ -2,8 +2,6 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Gaia.SearchEngine (
-    extractLocationPathsForAionCASKeyAndPatternAndLocationPath,
-    runQueryAgainMerkleRootUsingStoredData,
     runQuery2
 ) where
 
@@ -22,35 +20,18 @@ import qualified System.FilePath as FS
 import           System.IO.Unsafe (unsafePerformIO)
 
 -- -----------------------------------------------------------
-
-{-
-    In the first section we implement the selection process.
-    Currently we
-        - search for occurences of substrings in location paths
-        - process tags in gaia files
--}
-
+-- Utils 
 -- -----------------------------------------------------------
+
+isInfixOfCaseIndependent2 :: String -> String -> Bool
+isInfixOfCaseIndependent2 pattern name = D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower name)
 
 shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath -> [GD.GaiaFileDirective] -> String -> Bool
 shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives _ parsedirectives pattern =
     any (\directive ->
             case directive of
-               GaiaFileDirective GaiaFileTag body -> D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower body)
+               GaiaFileDirective GaiaFileTag body -> isInfixOfCaseIndependent2 pattern body
         ) parsedirectives
-
-isInfixOfCaseIndependent2 :: String -> String -> Bool
-isInfixOfCaseIndependent2 pattern name = D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower name)
-
--- -----------------------------------------------------------
-
-{-
-	Each Aion point is a location of the File System
-	Therefore each Aeson Value is a location of the file system
-	In the below <current path> is the full FS path to the object (which is not known by the object itself and must be computed recursively from some root)
--}
-
--- -----------------------------------------------------------
 
 casKeyToAionName :: String -> IO (Maybe String)
 casKeyToAionName key = do
@@ -72,6 +53,14 @@ casKeyToAionName key = do
                     return $ Just name
 
 -- -----------------------------------------------------------
+-- Aion Points Recursive Analysis
+-- -----------------------------------------------------------
+
+{-
+	Each Aion point is a location of the File System
+	Therefore each Aeson Value is a location of the file system
+	In the below <current path> is the full FS path to the object (which is not known by the object itself and must be computed recursively from some root)
+-}
 
 {-
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [ LocationPath ]
@@ -105,8 +94,6 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pa
         where 
             tap = GAOU.aesonValueToTAionPoint aesonValueFile
 
--- -----------------------------------------------------------
-
 extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [LocationPath]
 extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonValueDirectory pattern locationpath = do
     let tap = GAOU.aesonValueToTAionPoint aesonValueDirectory
@@ -132,15 +119,11 @@ extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonValueDi
     else
         x3
 
--- -----------------------------------------------------------
-
 extractLocationPathsForAesonValueAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [LocationPath]
 extractLocationPathsForAesonValueAndPatternAndLocationPath aesonObject pattern locationpath =
     if GAOU.aesonValueIsFile aesonObject
         then extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObject pattern locationpath
         else extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonObject pattern locationpath
-
--- -----------------------------------------------------------
 
 extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [LocationPath]
 extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern locationpath = do
@@ -155,11 +138,28 @@ extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern
                 Just aionJSONValue' -> extractLocationPathsForAesonValueAndPatternAndLocationPath aionJSONValue' pattern locationpath
 
 -- -----------------------------------------------------------
+-- Running queries against Merkle Roots
+-- -----------------------------------------------------------
+
+{-
+
+	The Merkle root refers to a particular aion snapshot of the file system.
+
+	The fsroot is used to recursively construct paths.
+		Paths returned by the process are essentially the fsroot and recursively locationnames constructed by looking up the aion points.
+
+	This is due to the fact that the Merkle root doesn't know which node of the file system (fsroot) it represents.
+
+	The pattern is the search query.	
+
+-}
 
 runQueryAgainMerkleRootUsingStoredData :: LocationPath -> String -> String -> IO [ LocationPath ]
 runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern =
     extractLocationPathsForAionCASKeyAndPatternAndLocationPath merkleroot pattern fsroot
 
+-- -----------------------------------------------------------
+-- Search Engine Interface
 -- -----------------------------------------------------------
 
 runQuery1 :: String -> IO [String]
