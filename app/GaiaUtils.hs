@@ -1,6 +1,5 @@
 module Main where
 
-import           Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Gaia.AesonObjectsUtils as AOU
 import qualified Gaia.FSRootsManagement as FSM
@@ -38,7 +37,7 @@ doTheThing1 args
         scanroots <- FSM.getFSScanRoots
         _ <- mapM ( \scanroot -> do
                         putStrLn $ "location: "++scanroot
-                        merkle <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
+                        merkle <- SRM.getCurrentMerkleRootForFSScanRoot scanroot -- IO ( Maybe String )
                         case merkle of
                             Nothing      -> putStrLn "merkle  : Unknown!"
                             Just merkle' -> putStrLn $ "merkle  : " ++ merkle'
@@ -76,7 +75,7 @@ doTheThing1 args
         scanroots <- FSM.getFSScanRoots
         _ <- mapM ( \scanroot -> do
                         putStrLn scanroot
-                        merkleroot' <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
+                        merkleroot' <- SRM.getCurrentMerkleRootForFSScanRoot scanroot
                         case merkleroot' of
                             Nothing         -> putStrLn "error: Could not retrieve Merkle root for this location"
                             Just merkleroot -> do

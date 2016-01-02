@@ -8,7 +8,6 @@ module Gaia.SearchEngine (
 ) where
 
 import           Control.Monad
-import           Control.Monad.Trans.Maybe
 import qualified Data.Aeson as A
     -- A.decode :: A.FromJSON a => Char8.ByteString -> Maybe a
 import qualified Data.ByteString.Lazy.Char8 as Char8
@@ -40,15 +39,15 @@ import           System.IO.Unsafe (unsafePerformIO)
 -- *AesonObjectsUtils> Gaia.Directives.parseDirectivesFile "/Users/pascal/Desktop/Gifs/gaia"
 -- Right [Tag -> "Use the force, Luke"]
 
-shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath -> String -> [GD.GaiaFileDirective] -> Bool
-shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives _ pattern parsedirectives =
+shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives :: LocationPath -> [GD.GaiaFileDirective] -> String -> Bool
+shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives _ parsedirectives pattern =
     any (\directive ->
             case directive of
-               GaiaFileDirective GaiaFileTag body -> ( GU.stringToLower pattern ) `D.isInfixOf` ( GU.stringToLower body )
+               GaiaFileDirective GaiaFileTag body -> D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower body)
         ) parsedirectives
 
 shouldRetainThisLocationInVirtueOfTheName :: String -> String -> Bool
-shouldRetainThisLocationInVirtueOfTheName name pattern = ( GU.stringToLower pattern ) `D.isInfixOf` ( GU.stringToLower name )
+shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower name)
 
 -- -----------------------------------------------------------
 
@@ -63,24 +62,29 @@ shouldRetainThisLocationInVirtueOfTheName name pattern = ( GU.stringToLower patt
 -- CAS.get :: String -> IO ( Maybe Char8.ByteString )
 -- GAOU.convertJSONStringIntoAesonValue :: String -> Maybe A.Value
 
-casKeyToAionName :: String -> MaybeT IO String
+casKeyToAionName :: String -> IO (Maybe String)
 casKeyToAionName key = do
-    aionPointAsByteString <- MaybeT $ CAS.get key
-    let aesonValue = GAOU.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString)
-    returnAppropriateName aesonValue
-    where
-        returnAppropriateName :: Maybe A.Value -> MaybeT IO String
-        returnAppropriateName Nothing = mzero
-        returnAppropriateName (Just aesonValue) = 
-            let tap = GAOU.aesonValueToTAionPoint aesonValue in 
-            let name = if GAOU.aesonValueIsFile aesonValue then name1 tap else name2 tap in
-            return name
+    aionPointAsByteString <- CAS.get key
+    case aionPointAsByteString of 
+        Nothing -> return Nothing
+        Just aionPointAsByteString' -> do
+            let aesonValue = GAOU.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString')
+            case aesonValue of 
+                Nothing -> return Nothing
+                Just aesonValue' -> do
+                    -- aesonValueToTAionPoint :: A.Value -> TAionPoint
+                    let tap = GAOU.aesonValueToTAionPoint aesonValue'
+                    let name = if GAOU.aesonValueIsFile aesonValue' 
+                               then name1 tap 
+                               else name2 tap
+                    return $ Just name
 
 -- -----------------------------------------------------------
 
 -- extractLocationPathsForAesonValueFileAndPatternAndLocationPath <aesonValueFile> <search pattern> <current path>
 
-extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> MaybeT IO [ LocationPath ]
+{-
+extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [ LocationPath ]
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pattern locationpath =
     do
         let tap = GAOU.aesonValueToTAionPoint aesonValueFile
@@ -88,36 +92,55 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pa
             then do
                 -- parseDirectivesFile :: FilePath -> MaybeT IO [Directive]
                 directives <- GD.parseDirectivesFile locationpath
-                if shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath pattern directives
+                if shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives locationpath directives pattern
                     then
                         return [ FS.takeDirectory locationpath ]
                     else
-                        mzero
+                        return []
             else
                 if shouldRetainThisLocationInVirtueOfTheName (name1 tap) pattern
                     then
                         return [ locationpath ]
                     else
-                        mzero
+                        return []
+-}
+
+extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [ LocationPath ]
+extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pattern locationpath = do
+        if shouldRetainThisLocationInVirtueOfTheName (name1 tap) pattern
+            then
+                return [ locationpath ]
+            else
+                return []
+        where 
+            tap = GAOU.aesonValueToTAionPoint aesonValueFile
 
 -- -----------------------------------------------------------
 
 -- extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath <aesonValueDirectory> <search pattern> <current path>
 
-extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> MaybeT IO [ LocationPath ]
+extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [LocationPath]
 extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonValueDirectory pattern locationpath = do
-    arrays <- mapM (\caskey -> do
-                                name <- casKeyToAionName caskey
-                                extractLocationPathsForAionCASKeyAndPatternAndLocationPath caskey pattern (FS.normalise $ FS.joinPath [locationpath, name])
-                    ) caskeys
-        -- [ IO ( Maybe [ LocationPath ] ) ] ~mapM~> MaybeT IO [ [ LocationPath ] ] ~> [ [ LocationPath ] ] (here it practically has the effect of catMaybes)
-
-    return $ evtAddLocation (concat arrays)
+    let tap = GAOU.aesonValueToTAionPoint aesonValueDirectory
+    let caskeys = contents2 tap
+    let x1 = map (\caskey -> do
+                                maybename <- casKeyToAionName caskey
+                                case maybename of
+                                    Nothing -> return []
+                                    Just name -> extractLocationPathsForAionCASKeyAndPatternAndLocationPath caskey pattern (FS.normalise $ FS.joinPath [locationpath, name])
+                                -- extractLocationPathsForAionCASKeyAndPatternAndLocationPath <aion cas hash> <search pattern> <current path>
+                                -- extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [LocationPath]
+                            ) caskeys
+    -- [IO [LocationPath]]
+    let x2 = sequence x1
+    -- IO [[LocationPath]]
+    let x3 = fmap concat x2
+    -- IO [LocationPath]
+    fmap evtAddLocation x3
+    -- IO [LocationPath]
     where
-        tap = GAOU.aesonValueToTAionPoint aesonValueDirectory
-        foldername = name2 tap
-        caskeys = contents2 tap
-        evtAddLocation array = if shouldRetainThisLocationInVirtueOfTheName foldername pattern
+        evtAddLocation array = 
+            if shouldRetainThisLocationInVirtueOfTheName locationpath pattern
             then
                 locationpath : array
             else
@@ -125,7 +148,7 @@ extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonValueDi
 
 -- -----------------------------------------------------------
 
-extractLocationPathsForAesonValueAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> MaybeT IO [ LocationPath ]
+extractLocationPathsForAesonValueAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [LocationPath]
 extractLocationPathsForAesonValueAndPatternAndLocationPath aesonObject pattern locationpath =
     if GAOU.aesonValueIsFile aesonObject
         then extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonObject pattern locationpath
@@ -135,20 +158,22 @@ extractLocationPathsForAesonValueAndPatternAndLocationPath aesonObject pattern l
 
 -- extractLocationPathsForAionCASKeyAndPatternAndLocationPath <aion cas hash> <search pattern> <current path>
 
-extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> MaybeT IO [ LocationPath ]
+extractLocationPathsForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [LocationPath]
 extractLocationPathsForAionCASKeyAndPatternAndLocationPath _ "" _ = mzero
 extractLocationPathsForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern locationpath = do
-    aionJSONValueAsString <- GAOU.getAionJSONStringForCASKey aion_cas_hash
-    let aionJSONValue = GAOU.convertJSONStringIntoAesonValue aionJSONValueAsString
-    returnAppropriatePaths aionJSONValue
-    where
-        returnAppropriatePaths :: Maybe A.Value -> MaybeT IO [ LocationPath ]
-        returnAppropriatePaths Nothing = mzero
-        returnAppropriatePaths (Just aionJSONValue) = extractLocationPathsForAesonValueAndPatternAndLocationPath aionJSONValue pattern locationpath
+    aionJSONValueAsString <- GAOU.getAionJSONStringForCASKey3 aion_cas_hash
+    case aionJSONValueAsString of 
+        Nothing -> return []
+        Just aionJSONValueAsString' -> do
+            -- GAOU.convertJSONStringIntoAesonValue :: String -> Maybe A.Value
+            let aionJSONValue = GAOU.convertJSONStringIntoAesonValue aionJSONValueAsString'
+            case aionJSONValue of
+                Nothing -> return []
+                Just aionJSONValue' -> extractLocationPathsForAesonValueAndPatternAndLocationPath aionJSONValue' pattern locationpath
 
 -- -----------------------------------------------------------
 
-runQueryAgainMerkleRootUsingStoredData :: LocationPath -> String -> String -> MaybeT IO [ LocationPath ]
+runQueryAgainMerkleRootUsingStoredData :: LocationPath -> String -> String -> IO [ LocationPath ]
 runQueryAgainMerkleRootUsingStoredData fsroot merkleroot pattern =
     extractLocationPathsForAionCASKeyAndPatternAndLocationPath merkleroot pattern fsroot
 
@@ -158,15 +183,10 @@ runQuery1 :: String -> IO [String]
 runQuery1 pattern = do
     scanroots <- FSM.getFSScanRoots -- getFSScanRoots :: IO [ String ]
     let x = map (\scanroot -> do
-                    merkleroot <- runMaybeT $ SRM.getCurrentMerkleRootForFSScanRoot scanroot
+                    merkleroot <- SRM.getCurrentMerkleRootForFSScanRoot scanroot
                     case merkleroot of
                         Nothing -> return []
-                        Just merkleroot' -> do
-                            locationpaths' <- runMaybeT $ runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
-                            -- Maybe [ LocationPath ]
-                            case locationpaths' of 
-                                Nothing -> return []
-                                Just locationpaths'' -> return locationpaths''
+                        Just merkleroot' -> runQueryAgainMerkleRootUsingStoredData scanroot merkleroot' pattern -- IO ( Maybe [ LocationPath ] )
                 ) scanroots 
     -- x :: [ IO [ String] ]
     fmap concat ( sequence x ) 

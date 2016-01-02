@@ -7,7 +7,7 @@ import           Gaia.Types
 -- This function checks the Aion Tree below a CAS Key
 aionTreeFsckCASKey :: String -> IO Bool
 aionTreeFsckCASKey caskey = do
-    string' <- runMaybeT $ GAOU.getAionJSONStringForCASKey caskey
+    string' <- GAOU.getAionJSONStringForCASKey3 caskey
     case string' of
         Nothing     -> return False
         Just string -> do

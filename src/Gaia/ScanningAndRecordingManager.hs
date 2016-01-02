@@ -95,8 +95,12 @@ commitMerkleRootForFSScanRoot :: String -> String -> IO ()
 commitMerkleRootForFSScanRoot fsscanlocationpath merkleroot =
     X.set (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan fsscanlocationpath) ( Char8.pack merkleroot )
 
-getCurrentMerkleRootForFSScanRoot :: String -> MaybeT IO String
-getCurrentMerkleRootForFSScanRoot locationpath = fmap Char8.unpack ( MaybeT $ X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath) )
+getCurrentMerkleRootForFSScanRoot :: String -> IO (Maybe String)
+-- xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan :: LocationPath -> String
+-- get :: String -> IO ( Maybe Char8.ByteString )
+getCurrentMerkleRootForFSScanRoot locationpath = do
+	maybe_bytestring <- X.get (FSRM.xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan locationpath)
+	return $ fmap Char8.unpack ( maybe_bytestring )
 
 -- ---------------------------------------------------------------
 

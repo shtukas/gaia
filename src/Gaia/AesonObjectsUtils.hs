@@ -108,8 +108,11 @@ import qualified PStorageServices.ContentAddressableStore as CAS
 	a TAionPoint passing through a Aeson Value
 -}
 
-getAionJSONStringForCASKey :: String -> MaybeT IO String
-getAionJSONStringForCASKey hash = do fmap Char8.unpack (MaybeT $ CAS.get hash)
+getAionJSONStringForCASKey3 :: String -> IO (Maybe String)
+getAionJSONStringForCASKey3 hash = do 
+    -- CAS.get :: String -> IO ( Maybe Char8.ByteString )
+    string <- CAS.get hash
+    return $ fmap Char8.unpack (string)
 
 convertJSONStringIntoAesonValue :: String -> Maybe A.Value
 convertJSONStringIntoAesonValue string = A.decode $ Char8.pack string
