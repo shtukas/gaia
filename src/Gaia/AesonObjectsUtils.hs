@@ -91,7 +91,7 @@ import qualified PStorageServices.ContentAddressableStore as CAS
 
 	In fact we do not need Aeson Values of even JSON strings.
 	We simply need a simple string serialization/unserialization
-	of TAionPointGeneric(s).
+	of AionPointAbstractionGeneric(s).
 
 	A departure from Genesis, but JSON string came up in there only because
 	Ruby manipulate them very well.
@@ -99,12 +99,12 @@ import qualified PStorageServices.ContentAddressableStore as CAS
 -}
 
 -- -----------------------------------------------------------
--- Build TAionPointGeneric from Stored JSON Strings
+-- Build AionPointAbstractionGeneric from Stored JSON Strings
 -- -----------------------------------------------------------
 
 {-
 	This section is in essence what is needed to convert a JSON string into
-	a TAionPointGeneric passing through a Aeson Value
+	a AionPointAbstractionGeneric passing through a Aeson Value
 -}
 
 getAionJSONStringForCASKey3 :: String -> IO (Maybe String)
@@ -141,8 +141,8 @@ aesonValueIsFile aesonValue =
         Nothing     -> False
         Just v' -> ( extractUnderlyingTextFromAesonValueString v' "" )=="file"
     
-aesonValueToTAionPointGeneric :: A.Value -> TAionPointGeneric
-aesonValueToTAionPointGeneric aesonvalue
+aesonValueToAionPointAbstractionGeneric :: A.Value -> AionPointAbstractionGeneric
+aesonValueToAionPointAbstractionGeneric aesonvalue
     | aesonValueIsFile aesonvalue =
         let
             value1 = extractListOfPairsFromAesonValue aesonvalue [] -- [(T.Text ,A.Value)]
@@ -158,7 +158,7 @@ aesonValueToTAionPointGeneric aesonvalue
                 case Prelude.lookup "hash" value1 of
                     Nothing -> ""
                     Just h1 -> T.unpack $ extractUnderlyingTextFromAesonValueString h1 ""
-        in TAionPointGenericFromFile (TAionPointFile filename filesize hash)
+        in AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename filesize hash)
     | otherwise =
         -- Here we make a leap of faith that if it's not a file it's a directory
         -- TODO: understand if is worth to move it to Either or Maybe with a
@@ -173,16 +173,16 @@ aesonValueToTAionPointGeneric aesonvalue
                 case Prelude.lookup "contents" value1 of
                     Nothing -> []
                     Just c1 -> extractUnderlyingListOfStringsFromAesonValueVectorString c1 []
-        in TAionPointGenericFromDirectory (TAionPointDirectory foldername contents)
+        in AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername contents)
 
 -- -----------------------------------------------------------
--- Commit TAionPointGeneric to disk
+-- Commit AionPointAbstractionGeneric to disk
 -- -----------------------------------------------------------
 
 {-
-	In this section we move from TAionPointGeneric to JSON String on Disk
+	In this section we move from AionPointAbstractionGeneric to JSON String on Disk
 	passing through a Aeson Value.
-	In this case we could as well build the JSON string directly from the TAionPointGeneric
+	In this case we could as well build the JSON string directly from the AionPointAbstractionGeneric
 -}
 
 makeAesonValueForFileUsingFileContents :: String -> Integer -> Char8.ByteString -> A.Value
@@ -220,9 +220,9 @@ aesonVAlueToString value = Char8.unpack $ A.encode value
 commitAesonValueToCAS :: A.Value -> IO String
 commitAesonValueToCAS value = CAS.set $ Char8.pack $ aesonVAlueToString value
 
-tAionPointToAesonValue :: TAionPointGeneric -> A.Value
-tAionPointToAesonValue (TAionPointGenericFromFile (TAionPointFile filename1 filesize1 hash1))  = makeAesonValueForFileUsingKnownFileHash filename1 filesize1 hash1
-tAionPointToAesonValue (TAionPointGenericFromDirectory (TAionPointDirectory foldername2 contents2)) = makeAesonValueForDirectoryUsingContentsHashes foldername2 contents2
+tAionPointToAesonValue :: AionPointAbstractionGeneric -> A.Value
+tAionPointToAesonValue (AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename1 filesize1 hash1))  = makeAesonValueForFileUsingKnownFileHash filename1 filesize1 hash1
+tAionPointToAesonValue (AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername2 contents2)) = makeAesonValueForDirectoryUsingContentsHashes foldername2 contents2
 
 
 

@@ -12,23 +12,23 @@ type FolderPath   = String
 type LocationPath = String
 
 -- -----------------------------------------------------------------------------
--- Aion Points, TAionPointGeneric
+-- Aion Points, AionPointAbstractionGeneric
 {-
-	TAionPointGeneric are "projections" of Aeson Values.
+	AionPointAbstractionGeneric are "projections" of Aeson Values.
 	They are used to make the code of the search engine independent from Aeson. 
 -}
 
 -- See http://stackoverflow.com/questions/24352280/multiple-declarations-of-x
 -- for why I use "unnatural" field names.
 
-data TAionPointFile = TAionPointFile { name1 :: String
+data AionPointAbstractionFile = AionPointAbstractionFile { name1 :: String
                                      , size1 :: Integer
                                      , hash1 :: String } deriving (Show)
 
-data TAionPointDirectory = TAionPointDirectory { name2 :: String
+data AionPointAbstractionDirectory = AionPointAbstractionDirectory { name2 :: String
                                                , contents2 :: [String] } deriving (Show)
 
-data TAionPointGeneric = TAionPointGenericFromFile TAionPointFile | TAionPointGenericFromDirectory TAionPointDirectory 
+data AionPointAbstractionGeneric = AionPointAbstractionGenericFromFile AionPointAbstractionFile | AionPointAbstractionGenericFromDirectory AionPointAbstractionDirectory 
                          deriving (Show)
 
 -- -----------------------------------------------------------------------------

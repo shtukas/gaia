@@ -6,10 +6,10 @@ import           Gaia.Types
 
 aionTreeFsckAesonValue :: A.Value -> IO Bool
 aionTreeFsckAesonValue aesonValue = do
-    let tap = GAOU.aesonValueToTAionPointGeneric aesonValue
+    let tap = GAOU.aesonValueToAionPointAbstractionGeneric aesonValue
     case tap of
-        TAionPointGenericFromFile _ -> return True
-        TAionPointGenericFromDirectory (TAionPointDirectory _ contents) -> do
+        AionPointAbstractionGenericFromFile _ -> return True
+        AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory _ contents) -> do
             -- map aionTreeFsckCASKey contents :: [IO Bool]
             -- sequence $ map aionTreeFsckCASKey contents :: IO [Bool]
             list <- sequence $ map aionTreeFsckCASKey contents
