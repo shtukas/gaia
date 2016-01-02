@@ -1,7 +1,11 @@
 
 // --------------------------------------------
-// -- CLASSIC SEARCH SUPPORT
+// -- CLASSIC SEARCH 
 // --------------------------------------------
+/*
+	(api_v1_search_dataset) = [Element]
+	Element = String
+*/
 
 var true_if_an_evaluation_is_running = false;
 var last_command_line_contents = null;
@@ -12,33 +16,26 @@ function unique(array){
 	});
 }
 
+function api_v1_search_dataset_to_html(dataset){
+	return dataset
+			.map(function(element){
+				return '<li><a href="#">'+element+'</a></li>'
+			})
+			.join('')
+}
+
 function cycle_command_line_classic_server_evaluation(line){
-
-	var search_start_time = (new Date()).getTime();
-	true_if_an_evaluation_is_running = true;
-	last_command_line_contents = line;
-		$("#div-id-evaluation-speed").html( '---------------' )
-
-	$("#div-id-evaluation-speed").html(  ((new Date()).getTime() - search_start_time)/1000 + " seconds" )
-	$("#div-id-evaluation-result-display").html('<div class="unit-dotted-border">You are searching: '+line+'</div>')
-	true_if_an_evaluation_is_running = false;
-	if($("#div-id-command-line-classic-input-text").val().trim()!=last_command_line_contents){
-		cycle_command_line_classic_processing();
-	}
-
-	return;
-
 	true_if_an_evaluation_is_running = true;
 	last_command_line_contents = line;
 	$("#div-id-evaluation-speed").html( '---------------' );
 	var search_start_time = (new Date()).getTime();
 	$.ajax({
 		type: "GET",
-		url: '/api/search1/'+encodeURIComponent(line),
+		url: '/api/v1/search/'+encodeURIComponent(line),
 		data: null,
-		success: function(html){
+		success: function(dataset){
 			$("#div-id-evaluation-speed").html(  ((new Date()).getTime() - search_start_time)/1000 + " seconds" )
-			$("#div-id-evaluation-result-display").html('<div class="unit-dotted-border">'+html+'</div>')
+			$("#div-id-evaluation-result-display").html('<div class="unit-dotted-border">'+api_v1_search_dataset_to_html(dataset)+'</div>')
 			true_if_an_evaluation_is_running = false;
 			if($("#div-id-command-line-classic-input-text").val().trim()!=last_command_line_contents){
 				cycle_command_line_classic_processing();
@@ -52,6 +49,9 @@ function cycle_command_line_classic_server_evaluation(line){
 
 function cycle_command_line_classic_processing(){
 	var line = $("#div-id-command-line-classic-input-text").val().trim();
+	if(line.length<=3){
+		return;
+	}
 	cycle_command_line_classic_server_evaluation(line);
 }
 
