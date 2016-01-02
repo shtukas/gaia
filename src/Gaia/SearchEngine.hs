@@ -33,17 +33,14 @@ shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives _ parsedirective
 
 casKeyToAionName :: String -> IO (Maybe String)
 casKeyToAionName key = do
-    -- CAS.get :: String -> IO ( Maybe Char8.ByteString )
     aionPointAsByteString <- CAS.get key
     case aionPointAsByteString of 
         Nothing -> return Nothing
         Just aionPointAsByteString' -> do
-            -- GAOU.convertJSONStringIntoAesonValue :: String -> Maybe A.Value
             let aesonValue = GAOU.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString')
             case aesonValue of 
                 Nothing -> return Nothing
                 Just aesonValue' -> do
-                    -- aesonValueToAionPointAbstractionGeneric :: A.Value -> AionPointAbstractionGeneric
                     let tapointgen = GAOU.aesonValueToAionPointAbstractionGeneric aesonValue'
                     return $ Just (extractNameFromTAPoint tapointgen)
                     where 

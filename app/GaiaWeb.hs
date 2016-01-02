@@ -12,7 +12,7 @@ import Gaia.Types
 import qualified Gaia.SearchEngine as GSE
 
 alpha_search :: String -> SEStructure1
-alpha_search pattern = SEStructure1C $ GSE.runQuery2 pattern
+alpha_search pattern = SEStructure1 $ GSE.runQuery2 pattern
 
 main :: IO ()
 main = simpleHTTP nullConf $
