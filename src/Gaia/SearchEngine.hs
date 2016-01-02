@@ -39,8 +39,8 @@ shouldRetainThisLocationPathAsDirectoryGivenTheseGaiaDirectives _ parsedirective
                GaiaFileDirective GaiaFileTag body -> D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower body)
         ) parsedirectives
 
-shouldRetainThisLocationInVirtueOfTheName :: String -> String -> Bool
-shouldRetainThisLocationInVirtueOfTheName name pattern = D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower name)
+isInfixOfCaseIndependent2 :: String -> String -> Bool
+isInfixOfCaseIndependent2 pattern name = D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower name)
 
 -- -----------------------------------------------------------
 
@@ -88,7 +88,7 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pa
                     else
                         return []
             else
-                if shouldRetainThisLocationInVirtueOfTheName (name1 tap) pattern
+                if isInfixOfCaseIndependent2 pattern (name1 tap) 
                     then
                         return [ locationpath ]
                     else
@@ -97,7 +97,7 @@ extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pa
 
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [ LocationPath ]
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pattern locationpath = do
-        if shouldRetainThisLocationInVirtueOfTheName (name1 tap) pattern
+        if isInfixOfCaseIndependent2 pattern (name1 tap)
             then
                 return [ locationpath ]
             else
@@ -125,7 +125,7 @@ extractLocationPathsForAesonValueDirectoryAndPatternAndLocationPath aesonValueDi
     -- x2 :: IO [[LocationPath]]
     let x3 = fmap concat x2
     -- x3 :: IO [LocationPath]
-    if D.isInfixOf (GU.stringToLower pattern) (GU.stringToLower foldername)
+    if isInfixOfCaseIndependent2 pattern foldername
     then do
         x4 <- x3
         return $ locationpath : x4
