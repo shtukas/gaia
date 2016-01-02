@@ -149,36 +149,17 @@
 
 	{
 		"lucille-energy-grid-uuid"        : (uuid)
-		"lucille-energy-grid-object-type" : "nyx:relation:ball-point"
+		"lucille-energy-grid-object-type" : "nyx:relation:nsx1-bidirectional-link"
 
 		"nyx:creation-datetime"           : (datetime)
 
-		"nyx:center:uuid"                 : (string)
-		"nyx:target:uuid"                 : (string)
+		"nyx:nsx2:uuid"                   : (string)
+		"nyx:nsx3:uuid"                   : (string)
 		"nyx:type"                        : null or (string) # string should start with "type:"
 		"nyx:ops-datetime"                : null or (datetime)
 		"nyx:ops-distance"                : null or (float)
 	}
 
-	{
-		"lucille-energy-grid-uuid"        : (uuid)
-		"lucille-energy-grid-object-type" : "nyx:relation:superseder"
-
-		"nyx:creation-datetime"           : (datetime)
-
-		"nyx:old-version:uuid"            : (uuid)
-		"nyx:new-version:uuid"            : (uuid)
-	}
-
-	{
-		"lucille-energy-grid-uuid"        : (uuid)
-		"lucille-energy-grid-object-type" : "nyx:relation:bi-directional-related-to"
-
-		"nyx:creation-datetime"           : (datetime)
-
-		"nyx:yin:uuid"                    : (uuid)
-		"nyx:yang:uuid"                   : (uuid)
-	}
 
 
 
