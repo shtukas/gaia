@@ -1,7 +1,7 @@
 module Main where
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
-import qualified Gaia.AesonObjectsUtils as AOU
+import qualified Gaia.AionPointAbstractionUtils as AOU
 import qualified Gaia.FSRootsManagement as FSM
 import qualified Gaia.ScanningAndRecordingManager as SRM
 import qualified Gaia.SearchEngine as SE

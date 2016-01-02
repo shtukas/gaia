@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Gaia.AesonObjectsUtils where
+module Gaia.AionPointAbstractionUtils where
 
 -- This module concentrates utility functions to facilitate the reading of Aeson Objects
 

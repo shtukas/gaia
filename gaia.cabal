@@ -18,7 +18,7 @@ library
   ghc-options:         -Wall -fwarn-tabs
   exposed-modules:
                     -- below this line in alphabetical order
-                       Gaia.AesonObjectsUtils
+                       Gaia.AionPointAbstractionUtils
                      , Gaia.Directives
                      , Gaia.FSRootsManagement
                      , Gaia.GeneralUtils

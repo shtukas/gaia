@@ -1,7 +1,7 @@
 module Gaia.SystemIntegrity where
 
 import qualified Data.Aeson as A
-import qualified Gaia.AesonObjectsUtils as GAOU
+import qualified Gaia.AionPointAbstractionUtils as GAOU
 import           Gaia.Types
 
 aionTreeFsckAesonValue :: A.Value -> IO Bool

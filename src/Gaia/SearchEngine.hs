@@ -7,9 +7,9 @@ module Gaia.SearchEngine (
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.List as D
-import qualified Gaia.FSRootsManagement as FSM
-import qualified Gaia.AesonObjectsUtils as GAOU
+import qualified Gaia.AionPointAbstractionUtils as GAOU
 import qualified Gaia.Directives as GD
+import qualified Gaia.FSRootsManagement as FSM
 import qualified Gaia.GeneralUtils as GU
 import qualified Gaia.ScanningAndRecordingManager as SRM
 import           Gaia.Types
