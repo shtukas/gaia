@@ -224,5 +224,9 @@ tAionPointToAesonValue :: AionPointAbstractionGeneric -> A.Value
 tAionPointToAesonValue (AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename1 filesize1 hash1))  = makeAesonValueForFileUsingKnownFileHash filename1 filesize1 hash1
 tAionPointToAesonValue (AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername2 contents2)) = makeAesonValueForDirectoryUsingContentsHashes foldername2 contents2
 
+commitAionPointAbstractionGenericToCAS :: AionPointAbstractionGeneric -> IO String
+commitAionPointAbstractionGenericToCAS x = commitAesonValueToCAS (tAionPointToAesonValue x)
+
+
 
 

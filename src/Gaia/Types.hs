@@ -26,10 +26,11 @@ data AionPointAbstractionFile = AionPointAbstractionFile { name1 :: String
                                      , hash1 :: String } deriving (Show)
 
 data AionPointAbstractionDirectory = AionPointAbstractionDirectory { name2 :: String
-                                               , contents2 :: [String] } deriving (Show)
+                                                                   , contents2 :: [String] } deriving (Show)
 
-data AionPointAbstractionGeneric = AionPointAbstractionGenericFromFile AionPointAbstractionFile | AionPointAbstractionGenericFromDirectory AionPointAbstractionDirectory 
-                         deriving (Show)
+data AionPointAbstractionGeneric = AionPointAbstractionGenericFromFile AionPointAbstractionFile 
+                                 | AionPointAbstractionGenericFromDirectory AionPointAbstractionDirectory 
+                                   deriving (Show)
 
 -- -----------------------------------------------------------------------------
 -- Gaia Files
