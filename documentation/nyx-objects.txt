@@ -5,13 +5,7 @@
 		"nyctian:description" : (string)
 
 # --------------------------------------------------------------------------------
-# Permanodes (Data Carriers)
-
-	{
-		"lucille-energy-grid-uuid"        : (uuid)
-		"lucille-energy-grid-object-type" : 'nyx:permanode:generic-point-v1' 
-		"nyx:creation-datetime"           : (datetime)
-	}
+# Permanodes
 
 	{
 		"lucille-energy-grid-uuid"        : "nyx-fa9d57f6-6912-4e9a-89d2-f8a349874b67"
@@ -87,6 +81,20 @@
 
 	{
 		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:permanode:clique"
+		"nyx:creation-datetime"           : "2015-04-06T15:16:53+01:00"
+		"nyx:name"                        : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:permanode:listing"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:name"                        : (string)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
 		"lucille-energy-grid-object-type" : "nyx:permanode:forbidden-email-address"
 		"nyx:creation-datetime"           : (datetime)
 		"nyx:email-address"               : (string)
@@ -99,34 +107,8 @@
 		"nyx:domain"                      : (string)
 	}
 
-
-# --------------------------------------------------------------------------------
-# Permanodes (Collections)
-
-	{
-		"lucille-energy-grid-uuid"        : (uuid)
-		"lucille-energy-grid-object-type" : "nyx:permanode:clique"
-		"nyx:creation-datetime"           : (datetime)
-		"nyx:description"                 : (string)
-	}
-
-	{
-		"lucille-energy-grid-uuid"        : (uuid)
-		"lucille-energy-grid-object-type" : "nyx:permanode:collection"
-		"nyx:creation-datetime"           : (datetime)
-		"nyx:description"                 : (string)
-	}
-
 # --------------------------------------------------------------------------------
 # Pins
-
-	{
-		"lucille-energy-grid-uuid"        : (uuid)
-		"lucille-energy-grid-object-type" : "nyx:pin:text"
-		"nyx:creation-datetime"           : (datetime)
-		"nyx:target:uuid"                 : (string)
-		"nyx:blobref"                     : (string)
-	}
 
 	{
 		"lucille-energy-grid-uuid"        : (uuid)
@@ -138,28 +120,27 @@
 
 	{
 		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:pin:clique"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:target:uuid"                 : (string)
+		"nyx:clique:uuid"                 : (string)
+		"nyx:ops-distance"                : (float)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
+		"lucille-energy-grid-object-type" : "nyx:pin:listing"
+		"nyx:creation-datetime"           : (datetime)
+		"nyx:target:uuid"                 : (string)
+		"nyx:listing:uuid"                : (string)
+		"nyx:ops-datetime"                : (datetime)
+	}
+
+	{
+		"lucille-energy-grid-uuid"        : (uuid)
 		"lucille-energy-grid-object-type" : "nyx:pin:comm-timeline:email-address"
 		"nyx:creation-datetime"           : (datetime)
 		"nyx:target:uuid"                 : (string)
 		"nyx:email-address"               : (string)
 	}
-
-# --------------------------------------------------------------------------------
-# Relations
-
-	{
-		"lucille-energy-grid-uuid"        : (uuid)
-		"lucille-energy-grid-object-type" : "nyx:relation:nsx1-bidirectional-link"
-
-		"nyx:creation-datetime"           : (datetime)
-
-		"nyx:nsx2:uuid"                   : (string)
-		"nyx:nsx3:uuid"                   : (string)
-		"nyx:type"                        : null or (string) # string should start with "type:"
-		"nyx:ops-datetime"                : null or (datetime)
-		"nyx:ops-distance"                : null or (float)
-	}
-
-
-
 
