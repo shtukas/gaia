@@ -1,6 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Gaia.FSRootsManagement where
+module Gaia.FSRootsManagement (
+    addFSRoot,
+    printFSRootsListing,
+    removeFSRoot,
+    getFSScanRoots,
+    xCacheStorageKeyForTheAionMerkleRootOfAFSRootScan,
+    merkleRootForFSRootScan
+) where
 
 import           Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Lazy.Char8 as Char8
