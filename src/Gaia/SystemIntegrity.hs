@@ -1,4 +1,6 @@
-module Gaia.SystemIntegrity where
+module Gaia.SystemIntegrity (
+    aionTreeFsckCASKey
+) where
 
 import qualified Gaia.AionPointAbstractionUtils as GAOU
 import           Gaia.Types
