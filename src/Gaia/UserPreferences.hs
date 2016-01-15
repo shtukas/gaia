@@ -1,4 +1,7 @@
-module Gaia.UserPreferences where
+module Gaia.UserPreferences (
+    getXCacheRoot,
+    getFSRootsListingFilePath
+) where
 
 import           Gaia.Types
 import           System.Directory as Dir
