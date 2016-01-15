@@ -1,13 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Gaia.AionPointAbstractionUtils where
+module Gaia.AionPointAbstractionUtils (
+    getAionJSONStringForCASKey3,
+    convertJSONStringIntoAesonValue,
+    extendedAesonValueToExtendedAionPointAbstractionGeneric,
+    tAionPointToAesonValue,
+    commitAionPointAbstractionGenericToCAS
+) where
 
 -- This module concentrates utility functions to facilitate the reading of Aeson Objects
 
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy.Char8 as Char8
-import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Scientific as S
 import qualified Data.Text as T
@@ -185,10 +190,6 @@ extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aeso
 	In this case we could as well build the JSON string directly from the AionPointAbstractionGeneric
 -}
 
-makeAesonValueForFileUsingFileContents :: String -> Integer -> Char8.ByteString -> A.Value
-makeAesonValueForFileUsingFileContents filename filesize filecontents =
-    makeAesonValueForFileUsingKnownFileHash filename filesize ( SHA.showDigest $ SHA.sha1 filecontents )
-
 makeAesonValueForFileUsingKnownFileHash :: String -> Integer -> String -> A.Value
 makeAesonValueForFileUsingKnownFileHash filename filesize hash =
     A.Object $ E.fromList [
@@ -197,14 +198,6 @@ makeAesonValueForFileUsingKnownFileHash filename filesize hash =
         ("name"      , A.String $ T.pack filename),
         ("size"      , A.Number $ S.scientific filesize 1 ),
         ("hash"      , A.String $ T.pack hash) ]
-
-makeAesonValueForDirectoryUsingContentsAesonValues :: String -> [A.Value] -> A.Value
-makeAesonValueForDirectoryUsingContentsAesonValues foldername aesonvalues =
-    A.Object $ E.fromList [
-            ("aion-type" , A.String "directory"),
-            ("version"   , A.Number 1),
-            ("name"      , A.String $ T.pack foldername),
-            ("contents"  , A.Array $ V.fromList aesonvalues ) ]
 
 makeAesonValueForDirectoryUsingContentsHashes :: String -> [String] -> A.Value
 makeAesonValueForDirectoryUsingContentsHashes foldername hashes =

@@ -45,8 +45,8 @@ casKeyToAionName key = do
                     let x1 = GAOU.extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aesonValue' key)
                     return $ Just (extractNameFromAionExtendedPointAbstractionGeneric x1)
                     where 
-                        extractNameFromAionExtendedPointAbstractionGeneric (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename _ _)) caskey) = filename
-                        extractNameFromAionExtendedPointAbstractionGeneric (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername _)) caskey) = foldername
+                        extractNameFromAionExtendedPointAbstractionGeneric (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename _ _)) _) = filename
+                        extractNameFromAionExtendedPointAbstractionGeneric (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromDirectory (AionPointAbstractionDirectory foldername _)) _) = foldername
 
 -- -----------------------------------------------------------
 -- Aion Points Recursive Analysis
