@@ -109,5 +109,15 @@ instance R.ToMessage SEStructure2 where
     toContentType _ = B1.pack "application/json"
     toMessage (SEStructure2 x) = (A.encode . A.toJSON) x
 
+-- -----------------------------------------------------------------------------
+-- DataWE (Data with Extension)
+{-
+	Data with extension is the what we retrieve from disk when the web client wants to see a AION point
+-} 
 
+data DataWE = DataWE Char8.ByteString String -- first argument is the binary data, and second is the file extension
+
+instance R.ToMessage DataWE where
+    toContentType _ = B1.pack "application/octet-stream"
+    toMessage (DataWE bytestring _) = bytestring
 

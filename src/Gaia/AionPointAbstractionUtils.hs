@@ -51,8 +51,11 @@ import qualified PStorageServices.ContentAddressableStore as CAS
 
     Object (
         fromList [
+            ("aion-type",   String "directory")
+            ("version",     Number 1.0)
+            ("name",        String "Desktop")
             (
-                "contents",Array (
+                "contents", Array (
                     fromList [
                         String "f2debbc0395676188af9224f21beebde4dfde586",
                         String "ac5b36985f766835d0e43d365d60ad3f242e0d04",
@@ -61,26 +64,24 @@ import qualified PStorageServices.ContentAddressableStore as CAS
                         String "684ea29239107360c1a96e594810bc4235caf288"
                     ]
                 )
-            ),
-            ("aion-type",String "directory"),
-            ("name",String "Desktop"),
-            ("version",Number 1.0)
+            )
         ]
     )
 
     Object (
         fromList [
-            ("hash",String "49f83f1f31fb9605a6d22f81acd59a7b39a40e4b"),
-            ("size",Number 2143190.0),("aion-type",String "file"),
-            ("name",String "1449085780693.jpg"),
-            ("version",Number 1.0)
+            ("aion-type", String "file")
+            ("version",   Number 1.0)
+            ("name",      String "1449085780693.jpg")
+            ("size",      Number 2143190.0)
+            ("hash",      String "49f83f1f31fb9605a6d22f81acd59a7b39a40e4b")
         ]
     )
 
-    an object is a HashMap
-    an array is a Vector
-    a string is a Text
-    a number is Scientific
+    Object is a HashMap
+    Array  is a Vector
+    String is a Text
+    Number is a Scientific
         (
             because JSON doesn't specify precision and so a
             type which allows arbitrary precision is used
