@@ -8,7 +8,8 @@ module Gaia.SearchEngine (
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.List as D
-import qualified Gaia.AionPointAbstractionUtils as GAOU
+import qualified Gaia.AesonValuesFileSystemCorrespondance as XP1
+import qualified Gaia.AesonValuesAionPointAbstractionsCorrespondance as XP2
 import qualified Gaia.Directives as GD
 import qualified Gaia.FSRootsManagement as FSM
 import qualified Gaia.GeneralUtils as GU
@@ -38,11 +39,11 @@ casKeyToAionName key = do
     case aionPointAsByteString of 
         Nothing -> return Nothing
         Just aionPointAsByteString' -> do
-            let aesonValue = GAOU.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString')
+            let aesonValue = XP1.convertJSONStringIntoAesonValue (Char8.unpack aionPointAsByteString')
             case aesonValue of 
                 Nothing -> return Nothing
                 Just aesonValue' -> do
-                    let x1 = GAOU.extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aesonValue' key)
+                    let x1 = XP2.extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aesonValue' key)
                     return $ Just (extractNameFromAionExtendedPointAbstractionGeneric x1)
                     where 
                         extractNameFromAionExtendedPointAbstractionGeneric (ExtendedAionPointAbstractionGeneric (AionPointAbstractionGenericFromFile (AionPointAbstractionFile filename _ _)) _) = filename
@@ -62,7 +63,7 @@ casKeyToAionName key = do
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath :: A.Value -> String -> LocationPath -> IO [ LocationPath ]
 extractLocationPathsForAesonValueFileAndPatternAndLocationPath aesonValueFile pattern locationpath =
     do
-        let tap = GAOU.extendedAesonValueToExtendedAionPointAbstractionGeneric aesonValueFile
+        let tap = XP2.extendedAesonValueToExtendedAionPointAbstractionGeneric aesonValueFile
         if name1 tap =="gaia"
             then do
                 -- parseDirectivesFile :: FilePath -> MaybeT IO [Directive]
@@ -116,15 +117,14 @@ extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (Ex
 
 extractSEAtomForAionCASKeyAndPatternAndLocationPath :: String -> String -> LocationPath -> IO [SEAtom]
 extractSEAtomForAionCASKeyAndPatternAndLocationPath aion_cas_hash pattern locationpath = do
-    aionJSONValueAsString <- GAOU.getAionJSONStringForCASKey3 aion_cas_hash
+    aionJSONValueAsString <- XP1.getAionJSONStringForCASKey3 aion_cas_hash
     case aionJSONValueAsString of 
         Nothing -> return []
         Just aionJSONValueAsString' -> do
-            -- GAOU.convertJSONStringIntoAesonValue :: String -> Maybe A.Value
-            let aionJSONValue = GAOU.convertJSONStringIntoAesonValue aionJSONValueAsString'
+            let aionJSONValue = XP1.convertJSONStringIntoAesonValue aionJSONValueAsString'
             case aionJSONValue of
                 Nothing -> return []
-                Just aionJSONValue' -> extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (GAOU.extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aionJSONValue' aion_cas_hash)) pattern locationpath
+                Just aionJSONValue' -> extractLocationPathsForAionPointAbstractionGenericAndPatternAndLocationPath2 (XP2.extendedAesonValueToExtendedAionPointAbstractionGeneric (ExtendedAesonValue aionJSONValue' aion_cas_hash)) pattern locationpath
 
 -- -----------------------------------------------------------
 -- Running queries against Merkle Roots

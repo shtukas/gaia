@@ -1,7 +1,7 @@
 module Main where
 
 import qualified Data.ByteString.Lazy.Char8 as Char8
-import qualified Gaia.AionPointAbstractionUtils as AOU
+import qualified Gaia.AesonValuesFileSystemCorrespondance as AVFSC
 import qualified Gaia.FSRootsManagement as FSM
 import qualified Gaia.ScanningAndRecordingManager as SRM
 import qualified Gaia.SearchEngine as SE
@@ -60,7 +60,7 @@ doTheThing1 args
                 if ( length $ Char8.unpack aionJSONValueAsString' ) == 0
                     then putStrLn "I could not find a Content Addressable Store record"
                     else do
-                        let aionJSONValueMaybe = AOU.convertJSONStringIntoAesonValue ( Char8.unpack aionJSONValueAsString' )
+                        let aionJSONValueMaybe = AVFSC.convertJSONStringIntoAesonValue ( Char8.unpack aionJSONValueAsString' )
                         case aionJSONValueMaybe of
                             Nothing            -> putStrLn "I could not convert the record to a Aeson Object"
                             Just aionJSONValue -> print aionJSONValue

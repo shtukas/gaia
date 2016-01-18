@@ -9,7 +9,8 @@ module Gaia.ScanningAndRecordingManager (
 import qualified Data.ByteString.Lazy.Char8 as Char8
 import qualified Data.Digest.Pure.SHA as SHA
 import           Data.Maybe
-import qualified Gaia.AionPointAbstractionUtils as GAOU
+import qualified Gaia.AesonValuesFileSystemCorrespondance as XP1
+import qualified Gaia.AesonValuesAionPointAbstractionsCorrespondance as XP2
 import qualified Gaia.FSRootsManagement as FSRM
 import           Gaia.Types
 import qualified PStorageServices.Xcache as X
@@ -77,7 +78,7 @@ folderpathToAionPointAbstractionDirectory folderpath = do
             -- x3 :: IO [AionPointAbstractionGeneric]
             x4 <- x3
             -- x4 :: [AionPointAbstractionGeneric]
-            caskeys <- sequence $ map GAOU.commitAionPointAbstractionGenericToCAS x4
+            caskeys <- sequence $ map ( XP1.commitStringToCAS . XP1.aesonVAlueToString . XP2.tAionPointToAesonValue ) x4
             return $ Just $ AionPointAbstractionDirectory (getLocationName folderpath) caskeys
         else
             return Nothing
@@ -113,7 +114,7 @@ computeMerkleRootForLocationRecursivelyComputedaAndStored locationpath = do
             case value of
                 Nothing     -> return Nothing
                 Just value' -> do 
-                    x1 <- GAOU.commitAionPointAbstractionGenericToCAS value'
+                    x1 <- ( XP1.commitStringToCAS . XP1.aesonVAlueToString . XP2.tAionPointToAesonValue ) value'
                     return $ Just x1
         else
             return Nothing

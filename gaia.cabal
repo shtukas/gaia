@@ -20,7 +20,6 @@ library
                     -- below this line in alphabetical order
                        Gaia.AesonValuesAionPointAbstractionsCorrespondance
                      , Gaia.AesonValuesFileSystemCorrespondance
-                     , Gaia.AionPointAbstractionUtils
                      , Gaia.Directives
                      , Gaia.FSRootsManagement
                      , Gaia.GeneralUtils
