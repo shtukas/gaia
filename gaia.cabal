@@ -18,7 +18,8 @@ library
   ghc-options:         -Wall -fwarn-tabs
   exposed-modules:
                     -- below this line in alphabetical order
-                       Gaia.AesonValuesFileSystemCorrespondance
+                       Gaia.AesonValuesAionPointAbstractionsCorrespondance
+                     , Gaia.AesonValuesFileSystemCorrespondance
                      , Gaia.AionPointAbstractionUtils
                      , Gaia.Directives
                      , Gaia.FSRootsManagement
