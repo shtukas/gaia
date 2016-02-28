@@ -77,3 +77,8 @@ More to come in next commits...
 - Reimplement all of Nyx in Gaia.
 	- Connection to the sqlite database. 
 	- etc.
+
+## Termination
+
+**25th February 2016** : Gaia has been suspended indefinitively as all of its functionalities are going to be superseeded by by [Orbital-Hub](https://github.com/shtukas/Orbital-Hub).
+
