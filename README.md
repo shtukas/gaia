@@ -80,5 +80,5 @@ More to come in next commits...
 
 ## Termination
 
-**25th February 2016** : Gaia has been suspended indefinitively as all of its functionalities are going to be superseeded by by [Orbital-Hub](https://github.com/shtukas/Orbital-Hub).
+**25th February 2016** : Gaia has been suspended indefinitively as all of its functionalities are going to be superseeded by [Orbital-Hub](https://github.com/shtukas/Orbital-Hub).
 
