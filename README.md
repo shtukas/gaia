@@ -1,6 +1,6 @@
 # Gaia
 
-Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/Nyx) with ideas coming from the proof-of-concept [Genesis](https://github.com/shutkas/Genesis).
+Gaia is a spin-off/re-implementation of [Nyx](https://github.com/shutkas/nyx) with ideas coming from the proof-of-concept [Genesis](https://github.com/shutkas/Genesis).
 
 With Gaia, not only the regular collection of Nyx objects will be available (with the features that come with them), not only will you be able to see your unmodified regular local file system hierarchy as repository, but you will also be able to browse (and partially access) files on your external hard drives while they are disconnected [1]. 
 
